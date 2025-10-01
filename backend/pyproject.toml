@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "business-messages-backend"
+version = "0.1.0"
+description = "Backend service for the Business Messages Manager application"
+authors = ["Business Messages Team <dev@example.com>"]
+readme = "README.md"
+packages = [{ include = "app" }]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.109.0"
+uvicorn = { extras = ["standard"], version = "^0.27.0" }
+sqlalchemy = "^2.0.25"
+alembic = "^1.13.1"
+psycopg2-binary = "^2.9.9"
+python-dotenv = "^1.0.1"
+pydantic-settings = "^2.1.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.4"
+httpx = "^0.26.0"
+
+[tool.poetry.scripts]
+app = "app.main:app"
+
+[build-system]
+requires = ["poetry-core>=1.7.0"]
+build-backend = "poetry.core.masonry.api"
