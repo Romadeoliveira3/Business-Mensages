@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import type { BusinessMessage, MessageHistory } from '../types';
+import type { BusinessMessage, MessageHistory, MessageInput } from '../types';
 import MessageHistoryModal from './MessageHistoryModal';
 import { HistoryIcon } from './icons/HistoryIcon';
 import Tooltip from './Tooltip';
@@ -9,7 +9,7 @@ import { useLocalization } from '../contexts/LocalizationContext';
 interface MessageEditorProps {
     message: BusinessMessage | null;
     history: MessageHistory[];
-    onSave: (message: BusinessMessage) => void;
+    onSave: (message: MessageInput) => Promise<void> | void;
     onClose: () => void;
 }
 
@@ -35,27 +35,33 @@ const HighlightedBody: React.FC<{ body: string }> = ({ body }) => {
     }
 };
 
+const defaultFormState: Omit<MessageInput, 'id'> = {
+    message_key: '',
+    title: '',
+    body: '',
+    variables: [],
+    http_status: undefined,
+    updated_by: 'admin@example.com',
+};
+
 const MessageEditor: React.FC<MessageEditorProps> = ({ message, history, onSave, onClose }) => {
-    const [formData, setFormData] = useState<Omit<BusinessMessage, 'id' | 'created_at' | 'updated_at'>>({
-        message_key: '',
-        version: 1,
-        title: '',
-        body: '',
-        variables: [],
-        http_status: undefined,
-        updated_by: 'admin@example.com',
-    });
+    const [formData, setFormData] = useState<Omit<MessageInput, 'id'>>({ ...defaultFormState });
     const [sampleValues, setSampleValues] = useState<Record<string, string>>({});
     const [isHistoryVisible, setIsHistoryVisible] = useState(false);
     const { t } = useLocalization();
 
     useEffect(() => {
         if (message) {
-            const { created_at, updated_at, id, ...editableFields } = message;
             setFormData({
-                ...editableFields,
+                message_key: message.message_key,
+                title: message.title,
+                body: message.body,
+                variables: message.variables,
                 http_status: message.http_status || undefined,
+                updated_by: message.updated_by,
             });
+        } else {
+            setFormData({ ...defaultFormState });
         }
     }, [message]);
     
@@ -77,16 +83,12 @@ const MessageEditor: React.FC<MessageEditorProps> = ({ message, history, onSave,
         setSampleValues(prev => ({ ...prev, [variable]: value }));
     };
     
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const finalMessage: BusinessMessage = {
-            ...(message || { id: '', created_at: new Date().toISOString() }),
+        await onSave({
             ...formData,
-            version: message ? formData.version + 1 : 1,
-            updated_at: new Date().toISOString(),
-            http_status: formData.http_status || undefined,
-        };
-        onSave(finalMessage);
+            id: message?.id,
+        });
     };
 
     const interpolatedPreview = useMemo(() => {

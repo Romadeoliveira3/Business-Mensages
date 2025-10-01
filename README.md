@@ -33,16 +33,26 @@ The backend is containerized and ships with Docker and Docker Compose workflows.
    cp .env.example .env
    ```
 
-2. Start the FastAPI service and PostgreSQL database:
+2. Build and start the full application stack (frontend, backend, and PostgreSQL database):
 
    ```bash
    docker compose up --build
    ```
 
-   The API will be available at <http://localhost:8000> and PostgreSQL on
-   `localhost:5432`.
+   The frontend will be served at <http://localhost:5173>, the API will be
+   available at <http://localhost:8000>, and PostgreSQL on `localhost:5432`.
 
-3. Use Alembic for database migrations:
+3. Seed the database with example messages (after the API is running):
+
+   ```bash
+   docker compose run --rm backend poetry run python app/seed_messages.py
+   ```
+
+   You can customise the payload by providing a JSON file via the
+   `SEED_PAYLOAD_FILE` environment variable, or point the script to a
+   different API origin with `SEED_BASE_URL`.
+
+4. Use Alembic for database migrations:
 
    ```bash
    docker compose run --rm backend alembic revision --autogenerate -m "init"

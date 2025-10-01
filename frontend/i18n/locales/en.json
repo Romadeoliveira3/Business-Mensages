@@ -16,6 +16,14 @@
     "credentialsHint": "Use <strong class=\"font-mono\">admin</strong> / <strong class=\"font-mono\">admin</strong> to log in.",
     "invalidCredentials": "Invalid username or password."
   },
+  "status": {
+    "loading": "Loading messages..."
+  },
+  "alerts": {
+    "loadError": "We couldn't load the messages. Please try again.",
+    "saveError": "We couldn't save your changes. Please try again.",
+    "deleteError": "We couldn't delete the message. Please try again."
+  },
   "messageList": {
     "title": "Messages",
     "newMessageButton": "New Message",

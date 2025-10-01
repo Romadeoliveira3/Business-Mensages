@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from app.api import api_router
 from app.core.config import settings
 
 
@@ -15,6 +16,8 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title=settings.project_name, lifespan=lifespan)
+
+app.include_router(api_router)
 
 
 @app.get("/", tags=["health"])

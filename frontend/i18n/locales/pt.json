@@ -16,6 +16,14 @@
     "credentialsHint": "Use <strong class=\"font-mono\">admin</strong> / <strong class=\"font-mono\">admin</strong> para entrar.",
     "invalidCredentials": "Usuário ou senha inválidos."
   },
+  "status": {
+    "loading": "Carregando mensagens..."
+  },
+  "alerts": {
+    "loadError": "Não foi possível carregar as mensagens. Tente novamente.",
+    "saveError": "Não foi possível salvar as alterações. Tente novamente.",
+    "deleteError": "Não foi possível remover a mensagem. Tente novamente."
+  },
   "messageList": {
     "title": "Mensagens",
     "newMessageButton": "Nova Mensagem",

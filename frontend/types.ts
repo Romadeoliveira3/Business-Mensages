@@ -18,3 +18,13 @@ export interface MessageHistory {
     updated_by: string;
     changes: string;
 }
+
+export interface MessageInput {
+    id?: string;
+    message_key: string;
+    title: string;
+    body: string;
+    variables: string[];
+    http_status?: number;
+    updated_by: string;
+}

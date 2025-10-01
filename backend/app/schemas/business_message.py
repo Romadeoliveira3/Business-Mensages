@@ -36,7 +36,6 @@ class BusinessMessageBase(BaseModel):
     """Fields shared by all business message schemas."""
 
     message_key: str
-    version: int
     title: str
     body: str
     variables: List[str] = Field(default_factory=list)
@@ -47,19 +46,18 @@ class BusinessMessageBase(BaseModel):
 class BusinessMessageCreate(BusinessMessageBase):
     """Schema for creating a new business message."""
 
-    id: str
-    created_at: datetime
-    updated_at: datetime
+    id: Optional[str] = None
+    version: int = 1
 
 
 class BusinessMessageUpdate(BaseModel):
     """Schema for updating an existing business message."""
 
+    message_key: Optional[str] = None
     title: Optional[str] = None
     body: Optional[str] = None
     variables: Optional[List[str]] = None
     http_status: Optional[int] = None
-    updated_at: Optional[datetime] = None
     updated_by: Optional[str] = None
 
 
@@ -67,6 +65,7 @@ class BusinessMessageRead(BusinessMessageBase):
     """Schema returned when reading business messages."""
 
     id: str
+    version: int
     created_at: datetime
     updated_at: datetime
     history: List[MessageHistoryRead] = Field(default_factory=list)

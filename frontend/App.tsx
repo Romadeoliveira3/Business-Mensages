@@ -1,13 +1,13 @@
 
-import React, { useState } from 'react';
-import type { BusinessMessage, MessageHistory } from './types';
-import { initialMessages, initialHistory } from './data/mockData';
+import React, { useEffect, useMemo, useState } from 'react';
+import type { BusinessMessage, MessageInput } from './types';
 import MessageList from './components/MessageList';
 import MessageEditor from './components/MessageEditor';
 import { PlusIcon } from './components/icons/PlusIcon';
 import LanguageSwitcher from './components/LanguageSwitcher';
 import ThemeSwitcher from './components/ThemeSwitcher';
 import { useLocalization } from './contexts/LocalizationContext';
+import { useMessages } from './hooks/useMessages';
 
 
 const APP_USER = import.meta.env.VITE_APP_USERNAME ?? 'admin';
@@ -94,13 +94,22 @@ const Login: React.FC<LoginProps> = ({ onLogin, error }) => {
 
 
 const App: React.FC = () => {
-    const [messages, setMessages] = useState<BusinessMessage[]>(initialMessages);
-    const [history, setHistory] = useState<Record<string, MessageHistory[]>>(initialHistory);
+    const { messages, history: historyMap, loading, error, createMessage, updateMessage, deleteMessage } = useMessages();
     const [selectedMessage, setSelectedMessage] = useState<BusinessMessage | null>(null);
     const [isCreating, setIsCreating] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [loginError, setLoginError] = useState('');
     const { t } = useLocalization();
+
+    useEffect(() => {
+        if (!selectedMessage) {
+            return;
+        }
+        const updatedMessage = messages.find(m => m.id === selectedMessage.id);
+        if (updatedMessage && updatedMessage !== selectedMessage) {
+            setSelectedMessage(updatedMessage);
+        }
+    }, [messages, selectedMessage]);
 
     const handleSelectMessage = (message: BusinessMessage) => {
         setSelectedMessage(message);
@@ -117,41 +126,28 @@ const App: React.FC = () => {
         setIsCreating(false);
     };
     
-    const handleSaveMessage = (messageToSave: BusinessMessage) => {
-        const now = new Date();
-        const newHistoryEntry: MessageHistory = {
-            version: messageToSave.version,
-            updated_by: 'admin@example.com',
-            updated_at: now.toISOString(),
-            changes: messageToSave.version > 1 ? t('history.defaultUpdate') : t('history.defaultCreate'),
-        };
-
-        if (messages.some(m => m.id === messageToSave.id)) {
-            // Update existing message
-            setMessages(messages.map(m => m.id === messageToSave.id ? messageToSave : m));
-            setHistory(prev => ({
-                ...prev,
-                [messageToSave.id]: [...(prev[messageToSave.id] || []), newHistoryEntry]
-            }));
-
-        } else {
-            // Create new message
-            const newMessage = { ...messageToSave, id: `msg_${Date.now()}` };
-            setMessages([...messages, newMessage]);
-            setHistory(prev => ({
-                ...prev,
-                [newMessage.id]: [newHistoryEntry]
-            }));
+    const handleSaveMessage = async (messageInput: MessageInput) => {
+        try {
+            if (selectedMessage) {
+                await updateMessage(selectedMessage.id, messageInput);
+            } else {
+                await createMessage(messageInput);
+            }
+            handleCloseEditor();
+        } catch (err) {
+            console.error(err);
         }
-
-        handleCloseEditor();
     };
-    
-    const handleDeleteMessage = (id: string) => {
-        setMessages(messages.filter(m => m.id !== id));
-        const newHistory = { ...history };
-        delete newHistory[id];
-        setHistory(newHistory);
+
+    const handleDeleteMessage = async (id: string) => {
+        try {
+            await deleteMessage(id);
+            if (selectedMessage?.id === id) {
+                handleCloseEditor();
+            }
+        } catch (err) {
+            console.error(err);
+        }
     };
     
     const handleLogin = (user: string, pass: string) => {
@@ -169,6 +165,13 @@ const App: React.FC = () => {
 
     const showEditor = selectedMessage || isCreating;
 
+    const errorMessage = useMemo(() => {
+        if (!error) return '';
+        if (error === 'load') return t('alerts.loadError');
+        if (error === 'delete') return t('alerts.deleteError');
+        return t('alerts.saveError');
+    }, [error, t]);
+
     return (
         <div className="min-h-screen bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200">
              <header className="bg-white shadow-sm dark:bg-slate-800 sticky top-0 z-10">
@@ -183,12 +186,22 @@ const App: React.FC = () => {
                 </div>
             </header>
             <main className="container p-8 mx-auto">
+                {loading && (
+                    <div className="mb-4 rounded-lg bg-blue-50 px-4 py-3 text-sm text-blue-700 dark:bg-blue-900/30 dark:text-blue-200" role="status">
+                        {t('status.loading')}
+                    </div>
+                )}
+                {errorMessage && (
+                    <div className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-200" role="alert">
+                        {errorMessage}
+                    </div>
+                )}
                 {showEditor ? (
-                    <MessageEditor 
-                          message={selectedMessage} 
+                    <MessageEditor
+                          message={selectedMessage}
                           onSave={handleSaveMessage}
                           onClose={handleCloseEditor}
-                          history={selectedMessage ? history[selectedMessage.id] || [] : []}
+                          history={selectedMessage ? historyMap[selectedMessage.id] || [] : []}
                        />
                 ) : (
                     <div>
@@ -202,8 +215,8 @@ const App: React.FC = () => {
                                 {t('messageList.newMessageButton')}
                             </button>
                         </div>
-                        <MessageList 
-                            messages={messages} 
+                        <MessageList
+                            messages={messages}
                             onEdit={handleSelectMessage}
                             onDelete={handleDeleteMessage}
                         />
