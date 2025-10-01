@@ -10,8 +10,8 @@ import ThemeSwitcher from './components/ThemeSwitcher';
 import { useLocalization } from './contexts/LocalizationContext';
 
 
-const APP_USER = 'admin';
-const APP_PASSWORD = 'password';
+const APP_USER = import.meta.env.VITE_APP_USERNAME ?? 'admin';
+const APP_PASSWORD = import.meta.env.VITE_APP_PASSWORD ?? 'admin';
 
 interface LoginProps {
     onLogin: (user: string, pass: string) => void;

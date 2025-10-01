@@ -1,10 +1,6 @@
-"""SQLAlchemy base metadata import placeholder.
-
-Import all SQLAlchemy models here so that Alembic can detect them for
-migrations. This module intentionally remains minimal until real models are
-introduced.
-"""
+"""SQLAlchemy base metadata import placeholder."""
 
 from app.db.base_class import Base
+from app.models import BusinessMessage, MessageHistory
 
-__all__ = ["Base"]
+__all__ = ["Base", "BusinessMessage", "MessageHistory"]
