@@ -1,0 +1,94 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "saveChanges": "Save Changes",
+    "createMessage": "Create Message",
+    "close": "Close"
+  },
+  "app": {
+    "title": "BM Manager"
+  },
+  "login": {
+    "title": "Business Messages Manager",
+    "usernamePlaceholder": "Username",
+    "passwordPlaceholder": "Password",
+    "signInButton": "Sign in",
+    "credentialsHint": "Use <strong class=\"font-mono\">admin</strong> / <strong class=\"font-mono\">password</strong> to log in.",
+    "invalidCredentials": "Invalid username or password."
+  },
+  "messageList": {
+    "title": "Messages",
+    "newMessageButton": "New Message",
+    "filterKeyPlaceholder": "Filter by message key...",
+    "filterHttpStatusPlaceholder": "Filter by HTTP status...",
+    "deleteConfirmation": "Are you sure you want to delete this message and its history?",
+    "noMessagesFound": "No messages found.",
+    "table": {
+      "key": "Message Key",
+      "httpStatus": "HTTP Status",
+      "version": "Version",
+      "lastUpdated": "Last Updated",
+      "actions": "Actions",
+      "updatedBy": "{date} by {user}"
+    }
+  },
+  "pagination": {
+    "pageInfo": "Page {currentPage} of {totalPages}",
+    "itemsPerPage": "{count} per page",
+    "itemsPerPageLabel": "Items per page"
+  },
+  "editor": {
+    "title": {
+      "create": "Create New Message",
+      "edit": "Edit Message: {key}"
+    },
+    "versionHistoryButton": "Version History",
+    "fields": {
+      "key": {
+        "label": "Message Key",
+        "tooltipText": "A unique identifier for the message, using dot notation for grouping.",
+        "tooltipExample": "e.g., user.login.success, api.payment.error"
+      },
+      "title": {
+        "label": "Title",
+        "tooltipText": "A short, descriptive title for the message, often used in UI alerts or notifications.",
+        "tooltipExample": "e.g., Login Successful, Payment Failed"
+      },
+      "body": {
+        "label": "Body (can be plain text or JSON)",
+        "tooltipText": "The main content. Use placeholders like {variable} for dynamic text or provide a valid JSON object for API responses.",
+        "tooltipExample": "{\n  \"error\": \"Not found\",\n  \"path\": \"{path}\"\n}"
+      },
+      "variables": {
+        "label": "Variables (comma-separated)",
+        "tooltipText": "A list of placeholder names used in the body, separated by commas. These will be replaced with dynamic data.",
+        "tooltipExample": "e.g., username, orderId"
+      },
+      "httpStatus": {
+        "label": "HTTP Status (optional)",
+        "tooltipText": "For API response messages, specify the corresponding HTTP status code.",
+        "tooltipExample": "e.g., 200, 404, 500"
+      }
+    },
+    "warning": {
+      "title": "Warning",
+      "undeclaredVariables": "The following placeholders are used in the body but not declared:"
+    },
+    "preview": {
+      "live": "Live Preview",
+      "formatted": "Formatted Preview",
+      "sampleVariables": "Sample Variables",
+      "sampleInputPlaceholder": "Sample for {variable}",
+      "noVariables": "No variables declared.",
+      "interpolatedMessage": "Interpolated Message"
+    }
+  },
+  "history": {
+    "title": "Version History for",
+    "version": "Version {version}",
+    "latest": "Latest",
+    "updatedBy": "{date} by {user}",
+    "defaultCreate": "Initial creation.",
+    "defaultUpdate": "Updated message content and properties."
+  }
+}

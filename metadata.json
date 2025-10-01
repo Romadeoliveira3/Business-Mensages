@@ -1,0 +1,5 @@
+{
+  "name": "Business Messages Manager",
+  "description": "A dashboard to centralize, version, and manage business messages used in corporate systems, allowing for dynamic updates without redeploying services.",
+  "requestFramePermissions": []
+}

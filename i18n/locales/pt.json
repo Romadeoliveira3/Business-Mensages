@@ -1,0 +1,94 @@
+{
+  "common": {
+    "cancel": "Cancelar",
+    "saveChanges": "Salvar Alterações",
+    "createMessage": "Criar Mensagem",
+    "close": "Fechar"
+  },
+  "app": {
+    "title": "Gerenciador BM"
+  },
+  "login": {
+    "title": "Gerenciador de Mensagens",
+    "usernamePlaceholder": "Usuário",
+    "passwordPlaceholder": "Senha",
+    "signInButton": "Entrar",
+    "credentialsHint": "Use <strong class=\"font-mono\">admin</strong> / <strong class=\"font-mono\">password</strong> para entrar.",
+    "invalidCredentials": "Usuário ou senha inválidos."
+  },
+  "messageList": {
+    "title": "Mensagens",
+    "newMessageButton": "Nova Mensagem",
+    "filterKeyPlaceholder": "Filtrar por chave da mensagem...",
+    "filterHttpStatusPlaceholder": "Filtrar por status HTTP...",
+    "deleteConfirmation": "Você tem certeza que deseja deletar esta mensagem e seu histórico?",
+    "noMessagesFound": "Nenhuma mensagem encontrada.",
+    "table": {
+      "key": "Chave da Mensagem",
+      "httpStatus": "Status HTTP",
+      "version": "Versão",
+      "lastUpdated": "Última Atualização",
+      "actions": "Ações",
+      "updatedBy": "{date} por {user}"
+    }
+  },
+  "pagination": {
+    "pageInfo": "Página {currentPage} de {totalPages}",
+    "itemsPerPage": "{count} por página",
+    "itemsPerPageLabel": "Itens por página"
+  },
+  "editor": {
+    "title": {
+      "create": "Criar Nova Mensagem",
+      "edit": "Editar Mensagem: {key}"
+    },
+    "versionHistoryButton": "Histórico de Versões",
+    "fields": {
+      "key": {
+        "label": "Chave da Mensagem",
+        "tooltipText": "Um identificador único para a mensagem, usando notação de ponto para agrupamento.",
+        "tooltipExample": "ex: usuario.login.sucesso, api.pagamento.erro"
+      },
+      "title": {
+        "label": "Título",
+        "tooltipText": "Um título curto e descritivo para a mensagem, frequentemente usado em alertas ou notificações de UI.",
+        "tooltipExample": "ex: Login com Sucesso, Falha no Pagamento"
+      },
+      "body": {
+        "label": "Corpo (pode ser texto ou JSON)",
+        "tooltipText": "O conteúdo principal. Use placeholders como {variavel} para texto dinâmico ou forneça um objeto JSON válido para respostas de API.",
+        "tooltipExample": "{\n  \"erro\": \"Não encontrado\",\n  \"caminho\": \"{caminho}\"\n}"
+      },
+      "variables": {
+        "label": "Variáveis (separadas por vírgula)",
+        "tooltipText": "Uma lista de nomes de placeholders usados no corpo, separados por vírgulas. Eles serão substituídos por dados dinâmicos.",
+        "tooltipExample": "ex: nomeUsuario, idPedido"
+      },
+      "httpStatus": {
+        "label": "Status HTTP (opcional)",
+        "tooltipText": "Para mensagens de resposta de API, especifique o código de status HTTP correspondente.",
+        "tooltipExample": "ex: 200, 404, 500"
+      }
+    },
+    "warning": {
+      "title": "Aviso",
+      "undeclaredVariables": "Os seguintes placeholders são usados no corpo mas não foram declarados:"
+    },
+    "preview": {
+      "live": "Pré-visualização ao Vivo",
+      "formatted": "Pré-visualização Formatada",
+      "sampleVariables": "Variáveis de Exemplo",
+      "sampleInputPlaceholder": "Exemplo para {variable}",
+      "noVariables": "Nenhuma variável declarada.",
+      "interpolatedMessage": "Mensagem Interpolada"
+    }
+  },
+  "history": {
+    "title": "Histórico de Versões para",
+    "version": "Versão {version}",
+    "latest": "Mais Recente",
+    "updatedBy": "{date} por {user}",
+    "defaultCreate": "Criação inicial.",
+    "defaultUpdate": "Conteúdo e propriedades da mensagem atualizados."
+  }
+}
