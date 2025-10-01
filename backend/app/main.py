@@ -6,10 +6,12 @@ from app.core.config import settings
 
 
 @asynccontextmanager
-def lifespan(_: FastAPI):
+async def lifespan(_: FastAPI):
     """Application lifespan hook for startup and shutdown events."""
 
+    # Place startup logic here (e.g., warmups, connections)
     yield
+    # Place shutdown logic here (e.g., graceful cleanup)
 
 
 app = FastAPI(title=settings.project_name, lifespan=lifespan)
