@@ -47,6 +47,11 @@ backend/
    docker compose run --rm backend alembic upgrade head
    ```
 
+   The application automatically runs `alembic upgrade head` on startup, so
+   locally you typically only need to generate new revisions. When the backend
+   container starts it will apply any pending migrations before serving
+   requests.
+
 ## Development notes
 
 - Dependencies are managed with Poetry inside the container. If you need to
