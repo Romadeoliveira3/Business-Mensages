@@ -71,6 +71,13 @@ restart:
 all: down prune restart-docker up
 	@echo "$(GREEN)Operação completa finalizada com sucesso!$(NC)"
 
+
+## Roda o seed de mensagens no container backend
+seed:
+	@echo "$(BLUE)Rodando seeds no container backend...$(NC)"
+	$(DC) exec backend python -m app.seed_messages
+	@echo "$(GREEN)Seeds executados com sucesso!$(NC)"
+
 ## Exibe ajuda com os comandos disponíveis
 help:
 	@echo "$(GREEN)Comandos disponíveis:$(NC)"

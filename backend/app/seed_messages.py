@@ -1,4 +1,5 @@
-"""Seed the application database by calling the public message API."""
+
+"""Seed the application database by inserting messages directly in the database."""
 
 from __future__ import annotations
 
@@ -6,12 +7,13 @@ import json
 import os
 import sys
 import time
-from dataclasses import dataclass
-from typing import Iterable
-from urllib import error, request
-from urllib.parse import urljoin
 
-DEFAULT_BASE_URL = "http://localhost:8000"
+from app.db.session import SessionLocal
+from app.schemas.business_message import BusinessMessageCreate
+from app.services.message_service import create_message
+from sqlalchemy.exc import IntegrityError
+
+
 DEFAULT_MESSAGES = [
     {
         "message_key": "welcome_message",
@@ -40,64 +42,8 @@ DEFAULT_MESSAGES = [
 ]
 
 
-@dataclass
-class SeedResult:
-    """Result of a single message seed operation."""
-
-    key: str
-    success: bool
-    status: int
-    detail: str | None = None
-
-
-class MessageSeeder:
-    """Seed helper that creates messages through the HTTP API."""
-
-    def __init__(self, base_url: str, retries: int = 12, retry_delay: float = 5.0) -> None:
-        self.base_url = base_url.rstrip("/")
-        self.retries = retries
-        self.retry_delay = retry_delay
-
-    def _request(self, path: str, payload: dict) -> SeedResult:
-        url = urljoin(self.base_url + "/", path.lstrip("/"))
-        data = json.dumps(payload).encode("utf-8")
-        req = request.Request(url, data=data, method="POST", headers={"Content-Type": "application/json"})
-
-        try:
-            with request.urlopen(req) as resp:
-                body = resp.read().decode("utf-8")
-                detail = body or None
-                return SeedResult(payload["message_key"], True, resp.status, detail)
-        except error.HTTPError as exc:  # pragma: no cover - network invocation
-            if exc.code == 409:
-                return SeedResult(payload["message_key"], True, exc.code, "Already exists")
-            detail = exc.read().decode("utf-8") if exc.fp else str(exc)
-            return SeedResult(payload["message_key"], False, exc.code, detail)
-        except error.URLError as exc:  # pragma: no cover - network invocation
-            raise ConnectionError(f"Failed to reach API at {url}: {exc.reason}") from exc
-
-    def _wait_for_api(self) -> None:
-        health_url = urljoin(self.base_url + "/", "")
-        for attempt in range(1, self.retries + 1):
-            try:
-                with request.urlopen(health_url) as resp:
-                    if resp.status < 500:
-                        return
-            except error.URLError:
-                pass
-            time.sleep(self.retry_delay)
-        raise TimeoutError(f"API at {self.base_url} did not become reachable after {self.retries} attempts")
-
-    def seed_messages(self, messages: Iterable[dict]) -> list[SeedResult]:
-        self._wait_for_api()
-        results: list[SeedResult] = []
-        for message in messages:
-            results.append(self._request("/messages", message))
-        return results
-
 
 def main() -> int:
-    base_url = os.getenv("SEED_BASE_URL", DEFAULT_BASE_URL)
     payload_path = os.getenv("SEED_PAYLOAD_FILE")
 
     if payload_path:
@@ -115,15 +61,26 @@ def main() -> int:
     else:
         messages = DEFAULT_MESSAGES
 
-    seeder = MessageSeeder(base_url)
+    db = SessionLocal()
+    failures = []
+    for msg in messages:
+        try:
+            obj_in = BusinessMessageCreate(**msg)
+            create_message(db, obj_in)
+            print(f"[OK] {msg['message_key']}")
+        except IntegrityError as exc:
+            db.rollback()
+            print(f"[SKIP] {msg['message_key']} (já existe)")
+        except Exception as exc:
+            db.rollback()
+            print(f"[ERROR] {msg['message_key']}: {exc}")
+            failures.append(msg['message_key'])
+    db.close()
 
-    try:
-        results = seeder.seed_messages(messages)
-    except (ConnectionError, TimeoutError) as exc:
-        print(str(exc), file=sys.stderr)
+    if failures:
+        print(f"Falha ao inserir: {', '.join(failures)}", file=sys.stderr)
         return 1
-
-    failures = [result for result in results if not result.success]
+    return 0
 
     for result in results:
         status = "ok" if result.success else "error"
