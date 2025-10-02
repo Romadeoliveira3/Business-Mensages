@@ -13,6 +13,7 @@
     "usernamePlaceholder": "Username",
     "passwordPlaceholder": "Password",
     "signInButton": "Sign in",
+    "loggingIn": "Logging in...",
     "credentialsHint": "Use <strong class=\"font-mono\">admin</strong> / <strong class=\"font-mono\">admin</strong> to log in.",
     "invalidCredentials": "Invalid username or password."
   },
