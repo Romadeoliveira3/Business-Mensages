@@ -36,11 +36,30 @@ The backend is containerized and ships with Docker and Docker Compose workflows.
 2. Build and start the full application stack (frontend, backend, and PostgreSQL database):
 
    ```bash
+   # Recommended (avoids Docker Desktop credential helper issues)
+   make up
+
+   # Or, if you prefer raw Compose:
    docker compose up --build
    ```
 
    The frontend will be served at <http://localhost:5173>, the API will be
    available at <http://localhost:8000>, and PostgreSQL on `localhost:5432`.
+
+   Troubleshooting: if you hit `error getting credentials - err: exit status 1`
+   during image pull/build, prefer `make up`. The Makefile can use a repo-local
+   `.docker-config/` to bypass the broken `credsStore: desktop` on some setups
+   (the folder is ignored by git). To use your global Docker config instead and
+   avoid creating `.docker-config/`, run `make LOCAL_DOCKER_CONFIG=0 up`.
+
+## Backend logs
+
+The backend runs with `--reload` and `--log-level debug` for development.
+Tail logs and see stack traces for 500 errors with:
+
+```bash
+docker compose logs -f backend
+```
 
 3. Seed the database with example messages (after the API is running):
 

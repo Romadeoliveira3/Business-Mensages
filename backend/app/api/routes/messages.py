@@ -24,8 +24,13 @@ router = APIRouter()
 @router.get("/", response_model=List[BusinessMessageRead])
 def read_messages(db: Session = Depends(get_db)) -> List[BusinessMessageRead]:
     """Return all stored business messages."""
-
-    return list_messages(db)
+    import logging
+    logger = logging.getLogger("uvicorn")
+    logger.info("Endpoint acessado: GET /messages/")
+    
+    messages = list_messages(db)
+    logger.info(f"Número de mensagens retornadas: {len(messages)}")
+    return messages
 
 
 @router.post(

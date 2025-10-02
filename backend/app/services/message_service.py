@@ -31,7 +31,8 @@ def list_messages(db: Session) -> list[BusinessMessage]:
         .options(joinedload(BusinessMessage.history))
         .order_by(BusinessMessage.message_key, BusinessMessage.version.desc())
     )
-    return list(db.scalars(stmt))
+    # Use unique() para evitar resultados duplicados com joinedload em coleções
+    return list(db.scalars(stmt).unique())
 
 
 def get_message(db: Session, message_id: str) -> Optional[BusinessMessage]:
@@ -42,7 +43,8 @@ def get_message(db: Session, message_id: str) -> Optional[BusinessMessage]:
         .options(joinedload(BusinessMessage.history))
         .where(BusinessMessage.id == message_id)
     )
-    return db.scalars(stmt).first()
+    # Mesmo para operações .first(), usamos unique() para consistência
+    return db.scalars(stmt).unique().first()
 
 
 def _record_history(

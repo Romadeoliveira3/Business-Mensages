@@ -2,6 +2,17 @@
 
 .PHONY: up down restart prune clean restart-docker all help
 
+# Optional: use a repo-local Docker config to avoid Desktop credential helper issues.
+# Set LOCAL_DOCKER_CONFIG=0 to disable and use your global Docker settings.
+LOCAL_DOCKER_CONFIG ?= 1
+DOCKER_CONFIG_DIR := $(CURDIR)/.docker-config
+
+ifeq ($(LOCAL_DOCKER_CONFIG),1)
+DC := DOCKER_CONFIG=$(DOCKER_CONFIG_DIR) docker compose
+else
+DC := docker compose
+endif
+
 # Cores para saída
 GREEN=\033[0;32m
 YELLOW=\033[0;33m
@@ -15,13 +26,13 @@ default: help
 ## Inicia os containers em modo detached com rebuild
 up:
 	@echo "$(GREEN)Iniciando containers com docker-compose (--build)...$(NC)"
-	docker-compose up --build -d
+	$(DC) up --build -d
 	@echo "$(GREEN)Containers iniciados com sucesso!$(NC)"
 
 ## Para os containers e remove volumes
 down:
 	@echo "$(RED)Parando containers e removendo volumes...$(NC)"
-	docker-compose down -v
+	$(DC) down -v
 	@echo "$(RED)Containers parados e volumes removidos!$(NC)"
 
 ## Remove recursos não utilizados (imagens, containers, redes e volumes não utilizados)
@@ -33,9 +44,15 @@ prune:
 ## Limpa todos os recursos relacionados ao Docker (use com cuidado)
 clean:
 	@echo "$(RED)Limpando todos os recursos...$(NC)"
-	docker-compose down -v
+	$(DC) down -v
 	docker system prune -a -f --volumes
 	@echo "$(RED)Limpeza completa finalizada!$(NC)"
+
+## Remove a pasta local de config do Docker (arquivos *.lock, buildx, etc.)
+clean-docker-config:
+	@echo "$(YELLOW)Removendo .docker-config (cache local do Docker)...$(NC)"
+	@if [ -d "$(DOCKER_CONFIG_DIR)" ]; then rm -rf "$(DOCKER_CONFIG_DIR)"; fi
+	@echo "$(GREEN).docker-config removida.$(NC)"
 
 ## Reinicia o serviço Docker (Windows)
 restart-docker:

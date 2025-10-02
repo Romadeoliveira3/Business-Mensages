@@ -1,22 +1,27 @@
-from contextlib import asynccontextmanager
-
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import api_router
 from app.core.config import settings
-from app.db.migrations import run_migrations
 
+# Removemos o lifespan que executava as migrations
+# As migrations agora são executadas pelo script start.sh antes de iniciar o servidor
 
-@asynccontextmanager
-async def lifespan(_: FastAPI):
-    """Application lifespan hook for startup and shutdown events."""
+app = FastAPI(
+    title=settings.project_name,
+    description="API para gerenciamento de mensagens de negócio",
+    version="0.1.0",
+    debug=True,
+)
 
-    run_migrations()
-    yield
-    # Place shutdown logic here (e.g., graceful cleanup)
-
-
-app = FastAPI(title=settings.project_name, lifespan=lifespan)
+# Enable CORS for the frontend during development
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(api_router)
 
