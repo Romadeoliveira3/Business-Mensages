@@ -36,8 +36,6 @@ class BusinessMessageBase(BaseModel):
     """Fields shared by all business message schemas."""
 
     message_key: str
-    title: str
-    body: str
     variables: List[str] = Field(default_factory=list)
     http_status: Optional[int] = None
     updated_by: str
@@ -48,17 +46,36 @@ class BusinessMessageCreate(BusinessMessageBase):
 
     id: Optional[str] = None
     version: int = 1
+    translations: List["MessageTranslationCreate"] = Field(default_factory=list)
 
 
 class BusinessMessageUpdate(BaseModel):
     """Schema for updating an existing business message."""
 
     message_key: Optional[str] = None
-    title: Optional[str] = None
-    body: Optional[str] = None
     variables: Optional[List[str]] = None
     http_status: Optional[int] = None
     updated_by: Optional[str] = None
+    translations: Optional[List["MessageTranslationCreate"]] = None
+
+
+class MessageTranslationBase(BaseModel):
+    """Shared attributes for message translations."""
+
+    language_code: str = Field(..., min_length=2, max_length=16)
+    title: str
+    body: str
+    language_name: Optional[str] = Field(default=None)
+
+
+class MessageTranslationCreate(MessageTranslationBase):
+    """Schema used when creating or updating translations."""
+
+
+class MessageTranslationRead(MessageTranslationBase):
+    """Translation payload returned to API consumers."""
+
+    language_name: str | None
 
 
 class BusinessMessageRead(BusinessMessageBase):
@@ -68,6 +85,11 @@ class BusinessMessageRead(BusinessMessageBase):
     version: int
     created_at: datetime
     updated_at: datetime
+    title: str
+    body: str
+    selected_language: Optional[str] = None
+    translations: List[MessageTranslationRead] = Field(default_factory=list)
+    available_languages: List[str] = Field(default_factory=list)
     history: List[MessageHistoryRead] = Field(default_factory=list)
 
     model_config = {"from_attributes": True}

@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { BusinessMessage, MessageInput, MessageHistory } from "../types";
+import {
+  BusinessMessage,
+  MessageInput,
+  MessageHistory,
+  MessageTranslation,
+} from "../types";
 import MessageHistoryModal from "./MessageHistoryModal";
 import { HistoryIcon } from "./icons/HistoryIcon";
 import Tooltip from "./Tooltip";
@@ -41,14 +46,24 @@ const HighlightedBody: React.FC<{ body: string }> = ({ body }) => {
   }
 };
 
-const defaultFormState: Omit<MessageInput, "id"> = {
+const DEFAULT_LANGUAGE = "en";
+
+const defaultMetadata: Omit<MessageInput, "translations" | "id"> = {
   message_key: "",
-  title: "",
-  body: "",
   variables: [],
   http_status: undefined,
   updated_by: "admin@example.com",
 };
+
+const createEmptyTranslation = (
+  language_code: string,
+  language_name?: string | null,
+): MessageTranslation => ({
+  language_code,
+  language_name,
+  title: "",
+  body: "",
+});
 
 const MessageEditor: React.FC<MessageEditorProps> = ({
   message,
@@ -56,10 +71,13 @@ const MessageEditor: React.FC<MessageEditorProps> = ({
   onSave,
   onClose,
 }) => {
-  const [formData, setFormData] = useState<Omit<MessageInput, "id">>({
-    ...defaultFormState,
+  const [metadata, setMetadata] = useState(defaultMetadata);
+  const [translationValues, setTranslationValues] = useState<
+    Record<string, MessageTranslation>
+  >({
+    [DEFAULT_LANGUAGE]: createEmptyTranslation(DEFAULT_LANGUAGE, "English"),
   });
-  // Estado separado para o campo de texto de variáveis, facilitando a digitação
+  const [selectedLanguage, setSelectedLanguage] = useState(DEFAULT_LANGUAGE);
   const [variablesInput, setVariablesInput] = useState("");
   const [sampleValues, setSampleValues] = useState<Record<string, string>>({});
   const [isHistoryVisible, setIsHistoryVisible] = useState(false);
@@ -67,121 +85,212 @@ const MessageEditor: React.FC<MessageEditorProps> = ({
 
   useEffect(() => {
     if (message) {
-      setFormData({
+      const translations =
+        message.translations.length > 0
+          ? message.translations
+          : [
+              createEmptyTranslation(
+                message.selected_language ?? DEFAULT_LANGUAGE,
+              ),
+            ].map((translation) => ({
+              ...translation,
+              title: translation.title || message.title,
+              body: translation.body || message.body,
+            }));
+
+      const translationMap: Record<string, MessageTranslation> = {};
+      for (const translation of translations) {
+        translationMap[translation.language_code] = {
+          ...translation,
+        };
+      }
+
+      const nextSelected =
+        message.selected_language ??
+        translations[0]?.language_code ??
+        DEFAULT_LANGUAGE;
+
+      setTranslationValues(translationMap);
+      setSelectedLanguage(nextSelected);
+      setMetadata({
         message_key: message.message_key,
-        title: message.title,
-        body: message.body,
         variables: message.variables,
-        http_status: message.http_status || undefined,
+        http_status: message.http_status ?? undefined,
         updated_by: message.updated_by,
       });
-      // Define o valor do campo de entrada de variáveis quando uma mensagem é carregada
       setVariablesInput(message.variables.join(","));
     } else {
-      setFormData({ ...defaultFormState });
+      setTranslationValues({
+        [DEFAULT_LANGUAGE]: createEmptyTranslation(DEFAULT_LANGUAGE, "English"),
+      });
+      setSelectedLanguage(DEFAULT_LANGUAGE);
+      setMetadata({ ...defaultMetadata });
       setVariablesInput("");
     }
+    setSampleValues({});
   }, [message]);
 
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+  const availableLanguages = Object.keys(translationValues);
+  const currentTranslation = translationValues[selectedLanguage] ??
+    createEmptyTranslation(selectedLanguage);
+
+  const handleMetadataChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     if (name === "http_status") {
-      setFormData((prev) => ({
+      setMetadata((prev) => ({
         ...prev,
         http_status: value ? parseInt(value, 10) : undefined,
       }));
     } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
+      setMetadata((prev) => ({ ...prev, [name]: value }));
     }
+  };
+
+  const handleTranslationFieldChange = (
+    field: "title" | "body" | "language_name",
+    value: string,
+  ) => {
+    setTranslationValues((prev) => ({
+      ...prev,
+      [selectedLanguage]: {
+        ...createEmptyTranslation(selectedLanguage),
+        ...prev[selectedLanguage],
+        [field]: value,
+      },
+    }));
   };
 
   const handleVariablesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
-    // Atualiza o estado do campo de texto diretamente para uma experiência melhor de digitação
     setVariablesInput(inputValue);
 
-    // Processa as variáveis apenas quando há conteúdo
     if (!inputValue.trim()) {
-      setFormData((prev) => ({ ...prev, variables: [] }));
+      setMetadata((prev) => ({ ...prev, variables: [] }));
       return;
     }
 
-    // Divide por vírgulas, remove espaços em branco extras e filtra entradas vazias
     const vars = inputValue
       .split(",")
       .map((v) => v.trim())
       .filter((v) => v !== "");
 
-    setFormData((prev) => ({ ...prev, variables: vars }));
+    setMetadata((prev) => ({ ...prev, variables: vars }));
   };
 
   const handleSampleValueChange = (variable: string, value: string) => {
     setSampleValues((prev) => ({ ...prev, [variable]: value }));
   };
 
+  const handleAddLanguage = () => {
+    const code = window
+      .prompt(t("editor.translations.addLanguagePrompt"))
+      ?.trim();
+    if (!code) {
+      return;
+    }
+    setTranslationValues((prev) => {
+      if (prev[code]) {
+        return prev;
+      }
+      return {
+        ...prev,
+        [code]: createEmptyTranslation(code),
+      };
+    });
+    setSelectedLanguage(code);
+  };
+
+  const handleRemoveLanguage = () => {
+    if (availableLanguages.length <= 1) {
+      return;
+    }
+    setTranslationValues((prev) => {
+      const updated = { ...prev };
+      delete updated[selectedLanguage];
+      const next = Object.keys(updated)[0] ?? DEFAULT_LANGUAGE;
+      setSelectedLanguage(next);
+      return updated;
+    });
+  };
+
+  const handleSelectLanguage = (code: string) => {
+    setTranslationValues((prev) => {
+      if (prev[code]) {
+        return prev;
+      }
+      return {
+        ...prev,
+        [code]: createEmptyTranslation(code),
+      };
+    });
+    setSelectedLanguage(code);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const translations = Object.values(translationValues).map((translation) => ({
+      language_code: translation.language_code,
+      title: translation.title,
+      body: translation.body,
+      language_name: translation.language_name,
+    }));
     await onSave({
-      ...formData,
+      ...metadata,
       id: message?.id,
+      translations,
     });
   };
 
   const interpolatedPreview = useMemo(() => {
-    let previewBody = formData.body;
+    let previewBody = currentTranslation.body;
 
-    // Verificar se as variáveis foram definidas e processadas corretamente
-    if (!formData.variables || formData.variables.length === 0) {
+    if (!metadata.variables || metadata.variables.length === 0) {
       return previewBody;
     }
 
     try {
-      // Tenta processar como JSON
       JSON.parse(previewBody);
-      for (const variable of formData.variables) {
-        if (!variable) continue; // Pula variáveis vazias
-
+      for (const variable of metadata.variables) {
+        if (!variable) continue;
         const regex = new RegExp(`"{${variable}}"`, "g");
         previewBody = previewBody.replace(
           regex,
-          `"${sampleValues[variable] || `{${variable}}`}"`
+          `"${sampleValues[variable] || `{${variable}}`}"`,
         );
       }
     } catch (e) {
-      // Processa como texto simples
-      for (const variable of formData.variables) {
-        if (!variable) continue; // Pula variáveis vazias
-
+      for (const variable of metadata.variables) {
+        if (!variable) continue;
         const regex = new RegExp(`\\{${variable}\\}`, "g");
         previewBody = previewBody.replace(
           regex,
-          sampleValues[variable] || `{${variable}}`
+          sampleValues[variable] || `{${variable}}`,
         );
       }
     }
     return previewBody;
-  }, [formData.body, formData.variables, sampleValues]);
+  }, [currentTranslation.body, metadata.variables, sampleValues]);
 
   const placeholdersInBody = useMemo(() => {
-    // Extrai todos os placeholders no formato {placeholder} do corpo da mensagem
-    const matches = formData.body.match(/\{([a-zA-Z0-9_]+)\}/g) || [];
-    // Remove as chaves e cria um Set para garantir valores únicos
+    const matches = currentTranslation.body.match(/\{([a-zA-Z0-9_]+)\}/g) || [];
     return new Set(matches.map((p) => p.slice(1, -1)));
-  }, [formData.body]);
+  }, [currentTranslation.body]);
 
   const undeclaredVariables = useMemo(
     () =>
-      [...placeholdersInBody].filter((p) => !formData.variables.includes(p)),
-    [placeholdersInBody, formData.variables]
+      [...placeholdersInBody].filter(
+        (p) => !metadata.variables.includes(p),
+      ),
+    [placeholdersInBody, metadata.variables],
   );
 
   const editorTitle = message
     ? t("editor.title.edit", { key: message.message_key })
     : t("editor.title.create");
+
+  const canRemoveLanguage = availableLanguages.length > 1;
 
   return (
     <div className="bg-white dark:bg-slate-800 p-8 rounded-xl shadow-lg relative">
@@ -194,8 +303,7 @@ const MessageEditor: React.FC<MessageEditorProps> = ({
             onClick={() => setIsHistoryVisible(true)}
             className="flex items-center gap-2 text-sm text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-200 font-semibold"
           >
-            <HistoryIcon className="w-5 h-5" />{" "}
-            {t("editor.versionHistoryButton")}
+            <HistoryIcon className="w-5 h-5" /> {t("editor.versionHistoryButton")}
           </button>
         )}
       </div>
@@ -218,12 +326,70 @@ const MessageEditor: React.FC<MessageEditorProps> = ({
             <input
               type="text"
               name="message_key"
-              value={formData.message_key}
-              onChange={handleChange}
+              value={metadata.message_key}
+              onChange={handleMetadataChange}
               required
               className="mt-1 block w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
             />
           </div>
+
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                {t("editor.translations.languageLabel")}
+              </label>
+              <select
+                value={selectedLanguage}
+                onChange={(event) => handleSelectLanguage(event.target.value)}
+                className="mt-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+              >
+                {availableLanguages.map((lang) => (
+                  <option key={lang} value={lang}>
+                    {lang}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={handleAddLanguage}
+                className="px-3 py-1 text-sm font-semibold text-primary-600 hover:text-primary-800 dark:text-primary-300 dark:hover:text-primary-100"
+              >
+                {t("editor.translations.addLanguage")}
+              </button>
+              <button
+                type="button"
+                onClick={handleRemoveLanguage}
+                disabled={!canRemoveLanguage}
+                className="px-3 py-1 text-sm font-semibold text-red-500 hover:text-red-700 disabled:text-slate-400 disabled:cursor-not-allowed dark:text-red-300 dark:hover:text-red-200"
+                title={
+                  canRemoveLanguage
+                    ? undefined
+                    : t("editor.translations.removeLanguageDisabled")
+                }
+              >
+                {t("editor.translations.removeLanguage")}
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              {t("editor.translations.languageNameLabel")}
+            </label>
+            <input
+              type="text"
+              value={currentTranslation.language_name || ""}
+              onChange={(event) =>
+                handleTranslationFieldChange(
+                  "language_name",
+                  event.target.value,
+                )
+              }
+              placeholder={t("editor.translations.languageNamePlaceholder")}
+              className="mt-1 block w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+            />
+          </div>
+
           <div>
             <div className="flex items-center gap-2">
               <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
@@ -237,12 +403,15 @@ const MessageEditor: React.FC<MessageEditorProps> = ({
             <input
               type="text"
               name="title"
-              value={formData.title}
-              onChange={handleChange}
+              value={currentTranslation.title}
+              onChange={(event) =>
+                handleTranslationFieldChange("title", event.target.value)
+              }
               required
               className="mt-1 block w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
             />
           </div>
+
           <div>
             <div className="flex items-center gap-2">
               <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
@@ -255,8 +424,10 @@ const MessageEditor: React.FC<MessageEditorProps> = ({
             </div>
             <textarea
               name="body"
-              value={formData.body}
-              onChange={handleChange}
+              value={currentTranslation.body}
+              onChange={(event) =>
+                handleTranslationFieldChange("body", event.target.value)
+              }
               rows={8}
               required
               className="mt-1 block w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 font-mono"
@@ -265,9 +436,10 @@ const MessageEditor: React.FC<MessageEditorProps> = ({
               <p className="text-xs text-slate-600 dark:text-slate-300 mb-1">
                 {t("editor.preview.formatted")}:
               </p>
-              <HighlightedBody body={formData.body} />
+              <HighlightedBody body={currentTranslation.body} />
             </div>
           </div>
+
           <div>
             <div className="flex items-center gap-2">
               <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
@@ -287,13 +459,15 @@ const MessageEditor: React.FC<MessageEditorProps> = ({
               className="mt-1 block w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 font-mono"
             />
           </div>
+
           {undeclaredVariables.length > 0 && (
             <div className="p-3 bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200 border-l-4 border-yellow-500 dark:border-yellow-400 rounded-r-md text-sm">
-              <strong>{t("editor.warning.title")}:</strong>{" "}
-              {t("editor.warning.undeclaredVariables")}{" "}
+              <strong>{t("editor.warning.title")}:</strong> {" "}
+              {t("editor.warning.undeclaredVariables")} {" "}
               {undeclaredVariables.join(", ")}
             </div>
           )}
+
           <div>
             <div className="flex items-center gap-2">
               <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
@@ -307,8 +481,8 @@ const MessageEditor: React.FC<MessageEditorProps> = ({
             <input
               type="number"
               name="http_status"
-              value={formData.http_status || ""}
-              onChange={handleChange}
+              value={metadata.http_status ?? ""}
+              onChange={handleMetadataChange}
               className="mt-1 block w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
             />
           </div>
@@ -323,8 +497,8 @@ const MessageEditor: React.FC<MessageEditorProps> = ({
               <h4 className="font-semibold text-slate-800 dark:text-slate-100">
                 {t("editor.preview.sampleVariables")}
               </h4>
-              {formData.variables.length > 0 ? (
-                formData.variables.map((v) => (
+              {metadata.variables.length > 0 ? (
+                metadata.variables.map((v) => (
                   <div key={v} className="flex items-center gap-2">
                     <label className="w-1/3 text-sm font-mono text-slate-600 dark:text-slate-300">{`{${v}}`}</label>
                     <input
@@ -352,7 +526,7 @@ const MessageEditor: React.FC<MessageEditorProps> = ({
               </h4>
               <div className="mt-2 p-4 bg-white dark:bg-slate-800 rounded-md shadow-inner">
                 <p className="font-bold text-lg text-slate-900 dark:text-slate-50">
-                  {formData.title}
+                  {currentTranslation.title}
                 </p>
                 <div className="mt-1 text-slate-700 dark:text-slate-300">
                   <HighlightedBody body={interpolatedPreview} />

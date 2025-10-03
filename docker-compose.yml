@@ -23,6 +23,7 @@ services:
       - .env
     volumes:
       - ./backend/app:/app/app
+      - ./backend/bm:/app/bm
       - ./backend/alembic:/app/alembic
       - ./backend/alembic.ini:/app/alembic.ini
       - ./backend/start.sh:/app/start.sh

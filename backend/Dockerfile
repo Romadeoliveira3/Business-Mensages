@@ -17,6 +17,7 @@ COPY pyproject.toml ./
 RUN poetry install --with dev --no-interaction --no-ansi --no-root
 
 COPY app ./app
+COPY bm ./bm
 COPY tests ./tests
 COPY alembic ./alembic
 COPY alembic.ini ./

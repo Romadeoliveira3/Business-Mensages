@@ -1,10 +1,20 @@
 
+export interface MessageTranslation {
+    language_code: string;
+    title: string;
+    body: string;
+    language_name?: string | null;
+}
+
 export interface BusinessMessage {
     id: string;
     message_key: string;
     version: number;
     title: string;
     body: string;
+    selected_language?: string | null;
+    available_languages: string[];
+    translations: MessageTranslation[];
     variables: string[];
     http_status?: number;
     created_at: string;
@@ -22,8 +32,7 @@ export interface MessageHistory {
 export interface MessageInput {
     id?: string;
     message_key: string;
-    title: string;
-    body: string;
+    translations: MessageTranslation[];
     variables: string[];
     http_status?: number;
     updated_by: string;

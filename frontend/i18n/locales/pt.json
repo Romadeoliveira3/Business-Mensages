@@ -36,6 +36,7 @@
       "key": "Chave da Mensagem",
       "httpStatus": "Status HTTP",
       "version": "Versão",
+      "languages": "Idiomas",
       "lastUpdated": "Última Atualização",
       "actions": "Ações",
       "updatedBy": "{date} por {user}"
@@ -52,6 +53,15 @@
       "edit": "Editar Mensagem: {key}"
     },
     "versionHistoryButton": "Histórico de Versões",
+    "translations": {
+      "languageLabel": "Idioma",
+      "languageNameLabel": "Nome do idioma (opcional)",
+      "languageNamePlaceholder": "ex: English, Português (Brasil)",
+      "addLanguage": "Adicionar idioma",
+      "addLanguagePrompt": "Informe um código de idioma (por exemplo en ou pt-BR)",
+      "removeLanguage": "Remover idioma",
+      "removeLanguageDisabled": "Pelo menos um idioma deve permanecer."
+    },
     "fields": {
       "key": {
         "label": "Chave da Mensagem",

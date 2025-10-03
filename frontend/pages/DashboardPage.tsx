@@ -14,6 +14,11 @@ interface DashboardPageProps {
 }
 
 const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
+  const { t, locale } = useLocalization();
+  const apiLanguage = useMemo(
+    () => (locale === "pt" ? "pt-BR" : "en"),
+    [locale],
+  );
   const {
     messages,
     history: historyMap,
@@ -23,13 +28,12 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
     updateMessage,
     deleteMessage,
     refresh: refreshMessages,
-  } = useMessages();
+  } = useMessages(apiLanguage);
 
   const [selectedMessage, setSelectedMessage] =
     useState<BusinessMessage | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { t } = useLocalization();
   const navigate = useNavigate();
 
   const handleSelectMessage = (message: BusinessMessage) => {

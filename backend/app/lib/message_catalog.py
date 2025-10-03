@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Any, Callable, Dict, Iterable, Iterator, Mapping, Tuple
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.db.session import SessionLocal
 from app.models.business_message import BusinessMessage
@@ -59,6 +59,7 @@ class MessageTemplate:
     created_at: datetime
     updated_at: datetime
     http_status: int | None = None
+    language: str | None = None
 
     def _render(self, values: Mapping[str, Any]) -> str:
         missing = [name for name in self.variables if name not in values]
@@ -99,6 +100,8 @@ class MessageTemplate:
             payload["variables"] = list(self.variables)
         if include_http_status and self.http_status is not None:
             payload["http_status"] = self.http_status
+        if self.language is not None:
+            payload["language"] = self.language
         return payload
 
 
@@ -110,10 +113,12 @@ class MessageCatalog:
         session_factory: SessionFactory | None = None,
         *,
         enable_cache: bool = True,
+        default_language: str | None = None,
     ) -> None:
         self._session_factory = session_factory or SessionLocal
         self._enable_cache = enable_cache
-        self._cache: Dict[tuple[str, int | None], MessageTemplate] = {}
+        self._default_language = default_language.lower() if default_language else None
+        self._cache: Dict[tuple[str, int | None, str | None], MessageTemplate] = {}
 
     @contextmanager
     def _session_scope(self) -> Iterator[Session]:
@@ -123,24 +128,49 @@ class MessageCatalog:
         finally:
             session.close()
 
-    def _materialise(self, message: BusinessMessage) -> MessageTemplate:
+    def _materialise(
+        self, message: BusinessMessage, language: str | None
+    ) -> MessageTemplate:
+        translations = list(message.translations or [])
+        selected = None
+        if language:
+            for translation in translations:
+                if translation.language_code.lower() == language:
+                    selected = translation
+                    break
+        if selected is None and translations:
+            selected = translations[0]
+        if selected is None:
+            raise MessageCatalogError(
+                f"Message '{message.message_key}' does not have any registered translations"
+            )
+
         return MessageTemplate(
             id=message.id,
             key=message.message_key,
-            title=message.title,
-            body=message.body,
+            title=selected.title,
+            body=selected.body,
             variables=tuple(message.variables or ()),
             version=message.version,
             updated_by=message.updated_by,
             created_at=message.created_at,
             updated_at=message.updated_at,
             http_status=message.http_status,
+            language=selected.language_code,
         )
 
     def _fetch(
-        self, session: Session, message_key: str, version: int | None
+        self,
+        session: Session,
+        message_key: str,
+        version: int | None,
+        language: str | None,
     ) -> MessageTemplate:
-        stmt = select(BusinessMessage).where(BusinessMessage.message_key == message_key)
+        stmt = (
+            select(BusinessMessage)
+            .options(joinedload(BusinessMessage.translations))
+            .where(BusinessMessage.message_key == message_key)
+        )
         if version is not None:
             stmt = stmt.where(BusinessMessage.version == version)
         else:
@@ -149,34 +179,51 @@ class MessageCatalog:
         message = session.scalars(stmt).first()
         if message is None:
             raise MessageNotFoundError(message_key, version)
-        return self._materialise(message)
+        return self._materialise(message, language)
 
     def get(
         self,
         message_key: str,
         *,
         version: int | None = None,
+        language: str | None = None,
         refresh: bool = False,
     ) -> MessageTemplate:
         """Retrieve a message template by key, optionally a specific version."""
 
-        cache_key = (message_key, version)
+        effective_language = language.lower() if language else self._default_language
+        cache_key = (message_key, version, effective_language)
         if self._enable_cache and not refresh:
             cached = self._cache.get(cache_key)
             if cached is not None:
                 return cached
 
         with self._session_scope() as session:
-            template = self._fetch(session, message_key, version)
+            template = self._fetch(session, message_key, version, effective_language)
 
         if self._enable_cache:
             self._cache[cache_key] = template
         return template
 
-    def invalidate(self, message_key: str, version: int | None = None) -> None:
+    def invalidate(
+        self,
+        message_key: str,
+        version: int | None = None,
+        *,
+        language: str | None = None,
+    ) -> None:
         """Remove a cached template for the provided key/version."""
 
-        self._cache.pop((message_key, version), None)
+        normalized = language.lower() if language else None
+        keys_to_remove = [
+            cache_key
+            for cache_key in list(self._cache)
+            if cache_key[0] == message_key
+            and cache_key[1] == version
+            and (normalized is None or cache_key[2] == normalized)
+        ]
+        for cache_key in keys_to_remove:
+            self._cache.pop(cache_key, None)
 
     def clear(self) -> None:
         """Clear the in-memory cache of templates."""
@@ -189,12 +236,13 @@ class MessageCatalog:
         values: Mapping[str, Any] | None = None,
         *,
         version: int | None = None,
+        language: str | None = None,
         default_status: int = 400,
         include_http_status: bool = True,
     ) -> tuple[int, Dict[str, Any]]:
         """Return an HTTP-style status code and payload for an error message."""
 
-        template = self.get(message_key, version=version)
+        template = self.get(message_key, version=version, language=language)
         payload = template.to_payload(values, include_http_status=include_http_status)
         status_code = template.http_status if template.http_status is not None else default_status
         return status_code, payload
@@ -207,11 +255,17 @@ def get_message(
     message_key: str,
     *,
     version: int | None = None,
+    language: str | None = None,
     refresh: bool = False,
 ) -> MessageTemplate:
     """Retrieve a message using the default catalog instance."""
 
-    return _default_catalog.get(message_key, version=version, refresh=refresh)
+    return _default_catalog.get(
+        message_key,
+        version=version,
+        language=language,
+        refresh=refresh,
+    )
 
 
 def format_error(
@@ -219,6 +273,7 @@ def format_error(
     values: Mapping[str, Any] | None = None,
     *,
     version: int | None = None,
+    language: str | None = None,
     default_status: int = 400,
     include_http_status: bool = True,
 ) -> tuple[int, Dict[str, Any]]:
@@ -228,6 +283,7 @@ def format_error(
         message_key,
         values,
         version=version,
+        language=language,
         default_status=default_status,
         include_http_status=include_http_status,
     )

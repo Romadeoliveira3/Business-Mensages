@@ -36,6 +36,7 @@
       "key": "Message Key",
       "httpStatus": "HTTP Status",
       "version": "Version",
+      "languages": "Languages",
       "lastUpdated": "Last Updated",
       "actions": "Actions",
       "updatedBy": "{date} by {user}"
@@ -52,6 +53,15 @@
       "edit": "Edit Message: {key}"
     },
     "versionHistoryButton": "Version History",
+    "translations": {
+      "languageLabel": "Language",
+      "languageNameLabel": "Language name (optional)",
+      "languageNamePlaceholder": "e.g., English, Português (Brasil)",
+      "addLanguage": "Add language",
+      "addLanguagePrompt": "Enter a language code (for example en or pt-BR)",
+      "removeLanguage": "Remove language",
+      "removeLanguageDisabled": "At least one language must remain."
+    },
     "fields": {
       "key": {
         "label": "Message Key",

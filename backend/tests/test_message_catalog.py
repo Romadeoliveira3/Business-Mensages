@@ -1,71 +1,21 @@
 from __future__ import annotations
 
-from collections.abc import Callable, Iterator
-from datetime import datetime
-from pathlib import Path
-import sys
-
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-
 import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
 
-from app.db.base import Base
 from app.lib import (
     MessageCatalog,
     MessageNotFoundError,
     MissingMessageVariablesError,
 )
-from app.models.business_message import BusinessMessage
-
-SessionFactory = Callable[[], Session]
-
-
-@pytest.fixture()
-def session_factory() -> Iterator[SessionFactory]:
-    engine = create_engine("sqlite+pysqlite:///:memory:", future=True)
-    Base.metadata.create_all(bind=engine)
-    factory: SessionFactory = sessionmaker(bind=engine)
-    try:
-        yield factory
-    finally:
-        engine.dispose()
-
-
-def _create_message(
-    session: Session,
-    *,
-    key: str,
-    version: int,
-    body: str,
-    variables: list[str] | None = None,
-    http_status: int | None = None,
-) -> None:
-    now = datetime.utcnow()
-    session.add(
-        BusinessMessage(
-            id=f"{key}-{version}",
-            message_key=key,
-            version=version,
-            title=f"Title {version}",
-            body=body,
-            variables=variables or [],
-            http_status=http_status,
-            created_at=now,
-            updated_at=now,
-            updated_by="tester",
-        )
-    )
+from app.models.business_message import Language, MessageTranslation
+from tests.conftest import SessionFactory, create_message
 
 
 def test_get_latest_version(session_factory: SessionFactory) -> None:
     catalog = MessageCatalog(session_factory=session_factory, enable_cache=False)
     with session_factory() as session:
-        _create_message(session, key="payment_failed", version=1, body="Payment failed {user}")
-        _create_message(
+        create_message(session, key="payment_failed", version=1, body="Payment failed {user}")
+        create_message(
             session,
             key="payment_failed",
             version=2,
@@ -84,8 +34,8 @@ def test_get_latest_version(session_factory: SessionFactory) -> None:
 def test_get_specific_version(session_factory: SessionFactory) -> None:
     catalog = MessageCatalog(session_factory=session_factory, enable_cache=True)
     with session_factory() as session:
-        _create_message(session, key="welcome", version=1, body="Hello {user}")
-        _create_message(session, key="welcome", version=2, body="Welcome {user}")
+        create_message(session, key="welcome", version=1, body="Hello {user}")
+        create_message(session, key="welcome", version=2, body="Welcome {user}")
         session.commit()
 
     first_version = catalog.get("welcome", version=1)
@@ -103,7 +53,7 @@ def test_get_specific_version(session_factory: SessionFactory) -> None:
 def test_missing_variables_raise(session_factory: SessionFactory) -> None:
     catalog = MessageCatalog(session_factory=session_factory)
     with session_factory() as session:
-        _create_message(session, key="error", version=1, body="Error for {user}", variables=["user"])
+        create_message(session, key="error", version=1, body="Error for {user}", variables=["user"])
         session.commit()
 
     with pytest.raises(MissingMessageVariablesError):
@@ -113,7 +63,7 @@ def test_missing_variables_raise(session_factory: SessionFactory) -> None:
 def test_format_error_payload(session_factory: SessionFactory) -> None:
     catalog = MessageCatalog(session_factory=session_factory)
     with session_factory() as session:
-        _create_message(
+        create_message(
             session,
             key="not_found",
             version=1,
@@ -133,3 +83,29 @@ def test_message_not_found(session_factory: SessionFactory) -> None:
     catalog = MessageCatalog(session_factory=session_factory)
     with pytest.raises(MessageNotFoundError):
         catalog.get("missing")
+
+
+def test_language_specific_translation(session_factory: SessionFactory) -> None:
+    catalog = MessageCatalog(session_factory=session_factory, enable_cache=False)
+    with session_factory() as session:
+        create_message(session, key="welcome", version=1, body="Hello {user}")
+        session.commit()
+
+        session.add(Language(code="pt-BR", name="Português (Brasil)"))
+        session.add(
+            MessageTranslation(
+                message_id="welcome-1",
+                language_code="pt-BR",
+                title="Bem-vindo",
+                body="Olá {user}",
+            )
+        )
+        session.commit()
+
+    localized = catalog.get("welcome", language="pt-BR")
+    assert localized.language == "pt-BR"
+    assert localized.render(user="João") == "Olá João"
+
+    fallback = catalog.get("welcome", language="es")
+    assert fallback.language != "es"
+    assert fallback.render(user="João") == "Hello João"

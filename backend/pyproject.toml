@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Backend service for the Business Messages Manager application"
 authors = ["Business Messages Team <dev@example.com>"]
 readme = "README.md"
-packages = [{ include = "app" }]
+packages = [{ include = "app" }, { include = "bm" }]
 
 [tool.poetry.dependencies]
 python = "^3.11"

@@ -91,6 +91,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onEdit, onDelete })
                                 <th scope="col" className="px-6 py-3">{t('messageList.table.key')}</th>
                                 <th scope="col" className="px-6 py-3">{t('messageList.table.httpStatus')}</th>
                                 <th scope="col" className="px-6 py-3">{t('messageList.table.version')}</th>
+                                <th scope="col" className="px-6 py-3">{t('messageList.table.languages')}</th>
                                 <th scope="col" className="px-6 py-3">{t('messageList.table.lastUpdated')}</th>
                                 <th scope="col" className="px-6 py-3 text-right">{t('messageList.table.actions')}</th>
                             </tr>
@@ -109,6 +110,21 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onEdit, onDelete })
                                         )}
                                     </td>
                                     <td className="px-6 py-4">{message.version}</td>
+                                    <td className="px-6 py-4">
+                                        <div className="flex flex-wrap gap-2">
+                                            {message.available_languages.map((lang) => {
+                                                const isActive = lang === message.selected_language;
+                                                return (
+                                                    <span
+                                                        key={`${message.id}-${lang}`}
+                                                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${isActive ? 'bg-primary-100 text-primary-700 border-primary-200 dark:bg-primary-900/40 dark:text-primary-200 dark:border-primary-700' : 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-700 dark:text-slate-200 dark:border-slate-600'}`}
+                                                    >
+                                                        {lang}
+                                                    </span>
+                                                );
+                                            })}
+                                        </div>
+                                    </td>
                                     <td className="px-6 py-4">{t('messageList.table.updatedBy', { date: new Date(message.updated_at).toLocaleDateString(), user: message.updated_by })}</td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex justify-end space-x-3">

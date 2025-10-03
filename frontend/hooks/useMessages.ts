@@ -18,7 +18,7 @@ const initialState: MessageState = {
   history: {},
 };
 
-export const useMessages = () => {
+export const useMessages = (language?: string) => {
   const [state, setState] = useState<MessageState>(initialState);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<MessageErrorType | null>(null);
@@ -34,7 +34,14 @@ export const useMessages = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/messages`);
+      const params = new URLSearchParams();
+      if (language) {
+        params.set("language", language);
+      }
+      const query = params.toString();
+      const response = await fetch(
+        `${API_BASE_URL}/messages${query ? `?${query}` : ""}`
+      );
       if (!response.ok) {
         throw new Error("Failed to load messages");
       }
@@ -53,7 +60,7 @@ export const useMessages = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [language]);
 
   useEffect(() => {
     // Verifica se o usuário está autenticado antes de buscar mensagens
@@ -68,20 +75,19 @@ export const useMessages = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch(`${API_BASE_URL}/messages`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            message_key: payload.message_key,
-            title: payload.title,
-            body: payload.body,
-            variables: payload.variables,
-            http_status: payload.http_status,
-            updated_by: payload.updated_by,
-          }),
-        });
+      const response = await fetch(`${API_BASE_URL}/messages`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message_key: payload.message_key,
+          translations: payload.translations,
+          variables: payload.variables,
+          http_status: payload.http_status,
+          updated_by: payload.updated_by,
+        }),
+      });
         if (!response.ok) {
           throw new Error("Failed to create message");
         }
@@ -102,20 +108,19 @@ export const useMessages = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch(`${API_BASE_URL}/messages/${id}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            message_key: payload.message_key,
-            title: payload.title,
-            body: payload.body,
-            variables: payload.variables,
-            http_status: payload.http_status,
-            updated_by: payload.updated_by,
-          }),
-        });
+      const response = await fetch(`${API_BASE_URL}/messages/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message_key: payload.message_key,
+          translations: payload.translations,
+          variables: payload.variables,
+          http_status: payload.http_status,
+          updated_by: payload.updated_by,
+        }),
+      });
         if (!response.ok) {
           throw new Error("Failed to update message");
         }

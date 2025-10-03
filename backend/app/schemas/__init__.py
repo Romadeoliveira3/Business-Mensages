@@ -1,4 +1,8 @@
-"""Pydantic schemas exposed by the API."""
+"""Pydantic schemas exposed by the API.
+
+This module re-exports the public models so consumers can import from
+``app.schemas`` without referring to submodules.
+"""
 
 from app.schemas.business_message import (
     BusinessMessageBase,
@@ -8,6 +12,8 @@ from app.schemas.business_message import (
     MessageHistoryBase,
     MessageHistoryCreate,
     MessageHistoryRead,
+    MessageTranslationCreate,
+    MessageTranslationRead,
 )
 
 __all__ = [
@@ -18,4 +24,6 @@ __all__ = [
     "MessageHistoryBase",
     "MessageHistoryCreate",
     "MessageHistoryRead",
+    "MessageTranslationCreate",
+    "MessageTranslationRead",
 ]
