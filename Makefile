@@ -81,7 +81,7 @@ seed:
 ## Roda todos os testes do backend com pytest
 test:
 	@echo "$(BLUE)Executando suite completa de testes do backend...$(NC)"
-	$(DC) exec backend poetry run pytest
+	$(DC) exec backend poetry run pytest -q --disable-warnings --maxfail=1 -rA
 	@echo "$(GREEN)Testes finalizados!$(NC)"
 
 ## Roda um teste específico do backend (ex.: make test-one target=tests/test_file.py::TestClass::test_case)
@@ -91,7 +91,7 @@ test-one:
 		exit 1; \
 	fi
 	@echo "$(BLUE)Executando teste do backend: $(target)...$(NC)"
-	$(DC) exec backend poetry run pytest $(target)
+	$(DC) exec backend poetry run pytest -q --disable-warnings --maxfail=1 -rA $(target)
 	@echo "$(GREEN)Teste finalizado!$(NC)"
 
 
