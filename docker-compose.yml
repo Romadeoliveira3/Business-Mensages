@@ -26,6 +26,7 @@ services:
       - ./backend/alembic:/app/alembic
       - ./backend/alembic.ini:/app/alembic.ini
       - ./backend/start.sh:/app/start.sh
+      - ./backend/tests:/app/tests
     depends_on:
       db:
         condition: service_healthy

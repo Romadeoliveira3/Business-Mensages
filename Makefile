@@ -1,6 +1,6 @@
 # Makefile para gerenciar operações Docker do projeto Business-Messages-Manager
 
-.PHONY: up down restart prune clean restart-docker all help
+.PHONY: up down restart prune clean restart-docker all help test test-one
 
 # Optional: use a repo-local Docker config to avoid Desktop credential helper issues.
 # Set LOCAL_DOCKER_CONFIG=0 to disable and use your global Docker settings.
@@ -77,6 +77,23 @@ seed:
 	@echo "$(BLUE)Rodando seeds no container backend...$(NC)"
 	$(DC) exec backend python -m app.seed_messages
 	@echo "$(GREEN)Seeds executados com sucesso!$(NC)"
+
+## Roda todos os testes do backend com pytest
+test:
+	@echo "$(BLUE)Executando suite completa de testes do backend...$(NC)"
+	$(DC) exec backend poetry run pytest
+	@echo "$(GREEN)Testes finalizados!$(NC)"
+
+## Roda um teste específico do backend (ex.: make test-one target=tests/test_file.py::TestClass::test_case)
+test-one:
+	@if [ -z "$(target)" ]; then \
+		echo "$(RED)Informe o alvo do pytest usando target=... (ex.: tests/test_module.py::TestClass::test_name).$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(BLUE)Executando teste do backend: $(target)...$(NC)"
+	$(DC) exec backend poetry run pytest $(target)
+	@echo "$(GREEN)Teste finalizado!$(NC)"
+
 
 ## Exibe ajuda com os comandos disponíveis
 help:

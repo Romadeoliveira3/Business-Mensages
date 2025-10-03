@@ -13,10 +13,11 @@ RUN pip install --no-cache-dir poetry==1.7.1 \
     && poetry config virtualenvs.create false
 
 COPY pyproject.toml ./
-# Install dependencies only (avoid installing the project itself to skip README requirement)
-RUN poetry install --only main --no-interaction --no-ansi --no-root
+# Install main + dev dependencies (so pytest and tooling are available in dev)
+RUN poetry install --with dev --no-interaction --no-ansi --no-root
 
 COPY app ./app
+COPY tests ./tests
 COPY alembic ./alembic
 COPY alembic.ini ./
 COPY start.sh ./
