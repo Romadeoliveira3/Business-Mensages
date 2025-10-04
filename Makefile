@@ -5,7 +5,7 @@
 # Optional: use a repo-local Docker config to avoid Desktop credential helper issues.
 # Set LOCAL_DOCKER_CONFIG=0 to disable and use your global Docker settings.
 LOCAL_DOCKER_CONFIG ?= 1
-DOCKER_CONFIG_DIR := $(CURDIR)/.docker-config
+DOCKER_CONFIG_DIR := "$(CURDIR)/.docker-config"
 
 ifeq ($(LOCAL_DOCKER_CONFIG),1)
 DC := DOCKER_CONFIG=$(DOCKER_CONFIG_DIR) docker compose

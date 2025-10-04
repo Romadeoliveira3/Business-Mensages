@@ -7,7 +7,6 @@ from .message_catalog import (
     MessageTemplate,
     MissingMessageVariablesError,
     format_error,
-    get_message,
 )
 
 __all__ = [
@@ -17,5 +16,4 @@ __all__ = [
     "MessageTemplate",
     "MissingMessageVariablesError",
     "format_error",
-    "get_message",
 ]

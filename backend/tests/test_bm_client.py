@@ -1,6 +1,3 @@
-"""Tests for the public ``bm`` helper package."""
-from __future__ import annotations
-
 import bm
 import bm.client as client_module
 import pytest
@@ -13,7 +10,12 @@ from tests.conftest import SessionFactory, create_message
 def test_business_messages_behaves_like_mapping(session_factory: SessionFactory) -> None:
     client = BusinessMessages(session_factory=session_factory)
     with session_factory() as session:
-        create_message(session, key="invoice", version=1, body="Invoice {id}", variables=["id"])
+        create_message(
+            session,
+            key="invoice",
+            code="MSG-INV",
+            title="Invoice {id}",
+        )
         session.commit()
 
     template = client.get("invoice")
@@ -30,17 +32,15 @@ def test_problem_payload_shape(session_factory: SessionFactory) -> None:
         create_message(
             session,
             key="not_allowed",
-            version=1,
-            body="Not allowed for {user}",
-            variables=["user"],
-            http_status=403,
+            code="MSG-NA",
+            title="Not allowed for {user}",
         )
         session.commit()
 
     problem = client.problem("not_allowed", values={"user": "Ana"})
-    assert problem["status"] == 403
-    assert problem["payload"]["body"] == "Not allowed for Ana"
-    assert problem["payload"]["variables"] == ["user"]
+    assert problem["status"] == 400
+    assert problem["payload"]["title"] == "Not allowed for Ana"
+    assert problem["payload"]["code"] == "MSG-NA"
 
 
 def test_module_shortcuts_delegate_to_default(
@@ -51,33 +51,42 @@ def test_module_shortcuts_delegate_to_default(
     monkeypatch.setattr(bm, "bm", custom)
 
     with session_factory() as session:
-        create_message(session, key="greeting", version=1, body="Hi {name}", variables=["name"])
+        create_message(
+            session,
+            key="greeting",
+            code="MSG-GREET",
+            title="Hi {name}",
+        )
         session.commit()
 
     template = bm.get("greeting")
     assert template.render(name="Ana") == "Hi Ana"
 
     rendered = bm.payload("greeting", values={"name": "Ana"})
-    assert rendered["body"] == "Hi Ana"
+    assert rendered["title"] == "Hi Ana"
 
     problem = bm.problem("greeting", values={"name": "Ana"})
     assert problem["status"] == 400
-    assert problem["payload"]["body"] == "Hi Ana"
+    assert problem["payload"]["title"] == "Hi Ana"
 
 
 def test_language_selection(session_factory: SessionFactory) -> None:
     client = BusinessMessages(session_factory=session_factory, enable_cache=False)
     with session_factory() as session:
-        create_message(session, key="hello", version=1, body="Hello {name}")
+        create_message(
+            session,
+            key="hello",
+            code="MSG-HELLO",
+            title="Hello {name}",
+        )
         session.commit()
 
         session.add(Language(code="pt-BR"))
         session.add(
             MessageTranslation(
-                message_id="hello-1",
+                message_id="MSG-HELLO",
                 language_code="pt-BR",
-                title="Saudação",
-                body="Olá {name}",
+                title="Olá {name}",
             )
         )
         session.commit()
@@ -87,4 +96,4 @@ def test_language_selection(session_factory: SessionFactory) -> None:
     assert template.render(name="Ana") == "Olá Ana"
 
     payload = client.payload("hello", values={"name": "Ana"}, language="pt-BR")
-    assert payload["body"] == "Olá Ana"
+    assert payload["title"] == "Olá Ana"

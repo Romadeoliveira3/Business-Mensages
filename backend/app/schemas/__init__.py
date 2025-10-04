@@ -9,9 +9,6 @@ from app.schemas.business_message import (
     BusinessMessageCreate,
     BusinessMessageRead,
     BusinessMessageUpdate,
-    MessageHistoryBase,
-    MessageHistoryCreate,
-    MessageHistoryRead,
     MessageTranslationCreate,
     MessageTranslationRead,
 )
@@ -21,9 +18,6 @@ __all__ = [
     "BusinessMessageCreate",
     "BusinessMessageRead",
     "BusinessMessageUpdate",
-    "MessageHistoryBase",
-    "MessageHistoryCreate",
-    "MessageHistoryRead",
     "MessageTranslationCreate",
     "MessageTranslationRead",
 ]

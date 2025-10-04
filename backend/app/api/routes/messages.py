@@ -13,7 +13,6 @@ from app.schemas import (
     BusinessMessageCreate,
     BusinessMessageRead,
     BusinessMessageUpdate,
-    MessageHistoryRead,
     MessageTranslationRead,
 )
 from app.services import (
@@ -42,30 +41,20 @@ def _serialise_message(message: BusinessMessage, language: str | None) -> Busine
     if selected is None and translations:
         selected = translations[0]
 
-    history_entries = sorted(message.history or [], key=lambda entry: entry.version)
-
     return BusinessMessageRead(
         id=message.id,
         message_key=message.message_key,
-        version=message.version,
-        variables=message.variables,
-        http_status=message.http_status,
-        updated_by=message.updated_by,
-        created_at=message.created_at,
-        updated_at=message.updated_at,
+        code=message.code,
         title=selected.title if selected else "",
-        body=selected.body if selected else "",
         selected_language=selected.language_code if selected else None,
         translations=[
             MessageTranslationRead(
                 language_code=translation.language_code,
                 title=translation.title,
-                body=translation.body,
             )
             for translation in translations
         ],
         available_languages=[translation.language_code for translation in translations],
-        history=[MessageHistoryRead.model_validate(entry) for entry in history_entries],
     )
 
 

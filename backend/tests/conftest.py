@@ -1,9 +1,6 @@
-"""Shared pytest fixtures for the backend test suite."""
-
 from __future__ import annotations
 
 import sys
-from datetime import datetime
 from pathlib import Path
 from typing import Callable, Iterator
 
@@ -40,39 +37,29 @@ def create_message(
     session: Session,
     *,
     key: str,
-    version: int,
-    body: str,
-    variables: list[str] | None = None,
-    http_status: int | None = None,
+    code: str,
+    title: str | None = None,
     language_code: str = "en",
-    language_name: str | None = None,
 ) -> None:
     """Persist a ``BusinessMessage`` row for testing purposes."""
 
-    now = datetime.utcnow()
     language = session.get(Language, language_code)
     if language is None:
         language = Language(code=language_code)
         session.add(language)
         session.flush()
 
-    session.add(
-        BusinessMessage(
-            id=f"{key}-{version}",
-            message_key=key,
-            version=version,
-            variables=variables or [],
-            http_status=http_status,
-            created_at=now,
-            updated_at=now,
-            updated_by="tester",
-            translations=[
-                MessageTranslation(
-                    message_id=f"{key}-{version}",
-                    language_code=language.code,
-                    title=f"Title {version}",
-                    body=body,
-                )
-            ],
-        )
+    message_id = code
+    message = BusinessMessage(
+        id=message_id,
+        message_key=key,
+        code=code,
+        translations=[
+            MessageTranslation(
+                message_id=message_id,
+                language_code=language.code,
+                title=title or f"Title {code}",
+            )
+        ],
     )
+    session.add(message)

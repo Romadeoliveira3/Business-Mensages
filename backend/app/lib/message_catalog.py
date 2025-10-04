@@ -1,19 +1,17 @@
-"""Utility helpers for retrieving and rendering business messages by key."""
+"""Utility helpers to query business messages by key and format their content."""
 
 from __future__ import annotations
 
-"""Utility helpers to query business messages by key and format their content."""
-
 from contextlib import contextmanager
 from dataclasses import dataclass
-from datetime import datetime
-from typing import Any, Callable, Dict, Iterable, Iterator, Mapping, Tuple
+from string import Formatter
+from typing import Any, Callable, Dict, Iterable, Iterator, Mapping
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
 
 from app.db.session import SessionLocal
-from app.models.business_message import BusinessMessage
+from app.models.business_message import BusinessMessage, MessageTranslation
 
 SessionFactory = Callable[[], Session]
 
@@ -23,13 +21,11 @@ class MessageCatalogError(RuntimeError):
 
 
 class MessageNotFoundError(MessageCatalogError):
-    """Raised when a message cannot be located for a given key/version."""
+    """Raised when a message cannot be located for a given key."""
 
-    def __init__(self, message_key: str, version: int | None = None) -> None:
-        detail = f" (version={version})" if version is not None else ""
-        super().__init__(f"No message registered with key '{message_key}'{detail}")
+    def __init__(self, message_key: str) -> None:
+        super().__init__(f"No message registered with key '{message_key}'")
         self.message_key = message_key
-        self.version = version
 
 
 class MissingMessageVariablesError(MessageCatalogError):
@@ -45,68 +41,75 @@ class MissingMessageVariablesError(MessageCatalogError):
         self.message_key = message_key
 
 
+def _extract_placeholders(text: str) -> tuple[str, ...]:
+    formatter = Formatter()
+    placeholders = {
+        field
+        for _literal, field, _format, _conversion in formatter.parse(text)
+        if field
+    }
+    return tuple(sorted(placeholders))
+
+
 @dataclass(frozen=True, slots=True)
 class MessageTemplate:
     """Immutable representation of a message fetched from the database."""
 
     id: str
     key: str
+    code: str
     title: str
-    body: str
-    variables: Tuple[str, ...]
-    version: int
-    updated_by: str
-    created_at: datetime
-    updated_at: datetime
-    http_status: int | None = None
-    language: str | None = None
+    language: str
+    placeholders: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "placeholders", _extract_placeholders(self.title))
 
     def _render(self, values: Mapping[str, Any]) -> str:
-        missing = [name for name in self.variables if name not in values]
+        missing = [name for name in self.placeholders if name not in values]
         if missing:
             raise MissingMessageVariablesError(missing, self.key)
 
         try:
-            return self.body.format(**values)
+            return self.title.format(**values)
         except KeyError as exc:  # pragma: no cover - defensive
             raise MissingMessageVariablesError([str(exc)], self.key) from exc
 
     def render(self, **values: Any) -> str:
-        """Return the body formatted with the provided keyword arguments."""
+        """Return the title formatted with the provided keyword arguments."""
 
+        if not values:
+            if self.placeholders:
+                raise MissingMessageVariablesError(self.placeholders, self.key)
+            return self.title
         return self._render(values)
 
     def render_with(self, values: Mapping[str, Any]) -> str:
-        """Return the body formatted with a mapping of values."""
+        """Return the title formatted with a mapping of values."""
 
+        if not values:
+            if self.placeholders:
+                raise MissingMessageVariablesError(self.placeholders, self.key)
+            return self.title
         return self._render(values)
 
     def to_payload(
         self,
         values: Mapping[str, Any] | None = None,
-        *,
-        include_http_status: bool = True,
-        include_variables: bool = True,
     ) -> Dict[str, Any]:
         """Return a serialisable payload with rendered content and metadata."""
 
         payload: Dict[str, Any] = {
             "message_key": self.key,
-            "title": self.title,
-            "body": self.body if values is None else self.render_with(values),
-            "version": self.version,
+            "code": self.code,
+            "title": self.title if values is None else self.render_with(values),
         }
-        if include_variables:
-            payload["variables"] = list(self.variables)
-        if include_http_status and self.http_status is not None:
-            payload["http_status"] = self.http_status
-        if self.language is not None:
-            payload["language"] = self.language
+        payload["language"] = self.language
         return payload
 
 
 class MessageCatalog:
-    """Helper responsible for fetching message templates by key/version."""
+    """Helper responsible for fetching message templates by key."""
 
     def __init__(
         self,
@@ -118,7 +121,7 @@ class MessageCatalog:
         self._session_factory = session_factory or SessionLocal
         self._enable_cache = enable_cache
         self._default_language = default_language.lower() if default_language else None
-        self._cache: Dict[tuple[str, int | None, str | None], MessageTemplate] = {}
+        self._cache: Dict[tuple[str, str | None], MessageTemplate] = {}
 
     @contextmanager
     def _session_scope(self) -> Iterator[Session]:
@@ -132,10 +135,11 @@ class MessageCatalog:
         self, message: BusinessMessage, language: str | None
     ) -> MessageTemplate:
         translations = list(message.translations or [])
-        selected = None
-        if language:
+        selected: MessageTranslation | None = None
+        normalized = language.lower() if language else None
+        if normalized:
             for translation in translations:
-                if translation.language_code.lower() == language:
+                if translation.language_code.lower() == normalized:
                     selected = translation
                     break
         if selected is None and translations:
@@ -148,14 +152,8 @@ class MessageCatalog:
         return MessageTemplate(
             id=message.id,
             key=message.message_key,
+            code=message.code,
             title=selected.title,
-            body=selected.body,
-            variables=tuple(message.variables or ()),
-            version=message.version,
-            updated_by=message.updated_by,
-            created_at=message.created_at,
-            updated_at=message.updated_at,
-            http_status=message.http_status,
             language=selected.language_code,
         )
 
@@ -163,7 +161,6 @@ class MessageCatalog:
         self,
         session: Session,
         message_key: str,
-        version: int | None,
         language: str | None,
     ) -> MessageTemplate:
         stmt = (
@@ -171,35 +168,30 @@ class MessageCatalog:
             .options(joinedload(BusinessMessage.translations))
             .where(BusinessMessage.message_key == message_key)
         )
-        if version is not None:
-            stmt = stmt.where(BusinessMessage.version == version)
-        else:
-            stmt = stmt.order_by(BusinessMessage.version.desc())
 
         message = session.scalars(stmt).first()
         if message is None:
-            raise MessageNotFoundError(message_key, version)
+            raise MessageNotFoundError(message_key)
         return self._materialise(message, language)
 
     def get(
         self,
         message_key: str,
         *,
-        version: int | None = None,
         language: str | None = None,
         refresh: bool = False,
     ) -> MessageTemplate:
-        """Retrieve a message template by key, optionally a specific version."""
+        """Retrieve a message template by key."""
 
         effective_language = language.lower() if language else self._default_language
-        cache_key = (message_key, version, effective_language)
+        cache_key = (message_key, effective_language)
         if self._enable_cache and not refresh:
             cached = self._cache.get(cache_key)
             if cached is not None:
                 return cached
 
         with self._session_scope() as session:
-            template = self._fetch(session, message_key, version, effective_language)
+            template = self._fetch(session, message_key, effective_language)
 
         if self._enable_cache:
             self._cache[cache_key] = template
@@ -208,93 +200,54 @@ class MessageCatalog:
     def invalidate(
         self,
         message_key: str,
-        version: int | None = None,
         *,
         language: str | None = None,
     ) -> None:
-        """Remove a cached template for the provided key/version."""
+        """Remove a cached template for the provided key."""
 
         normalized = language.lower() if language else None
         keys_to_remove = [
             cache_key
             for cache_key in list(self._cache)
             if cache_key[0] == message_key
-            and cache_key[1] == version
-            and (normalized is None or cache_key[2] == normalized)
+            and (normalized is None or cache_key[1] == normalized)
         ]
         for cache_key in keys_to_remove:
             self._cache.pop(cache_key, None)
 
     def clear(self) -> None:
-        """Clear the in-memory cache of templates."""
+        """Clear the whole in-memory cache of templates."""
 
         self._cache.clear()
 
     def format_error(
         self,
         message_key: str,
-        values: Mapping[str, Any] | None = None,
         *,
-        version: int | None = None,
+        values: Mapping[str, Any] | None = None,
         language: str | None = None,
         default_status: int = 400,
-        include_http_status: bool = True,
     ) -> tuple[int, Dict[str, Any]]:
-        """Return an HTTP-style status code and payload for an error message."""
+        """Format a message and return a tuple ``(status, payload)``."""
 
-        template = self.get(message_key, version=version, language=language)
-        payload = template.to_payload(values, include_http_status=include_http_status)
-        status_code = template.http_status if template.http_status is not None else default_status
-        return status_code, payload
-
-
-_default_catalog = MessageCatalog()
-
-
-def get_message(
-    message_key: str,
-    *,
-    version: int | None = None,
-    language: str | None = None,
-    refresh: bool = False,
-) -> MessageTemplate:
-    """Retrieve a message using the default catalog instance."""
-
-    return _default_catalog.get(
-        message_key,
-        version=version,
-        language=language,
-        refresh=refresh,
-    )
+        template = self.get(message_key, language=language)
+        payload = template.to_payload(values)
+        return default_status, payload
 
 
 def format_error(
     message_key: str,
-    values: Mapping[str, Any] | None = None,
     *,
-    version: int | None = None,
+    values: Mapping[str, Any] | None = None,
     language: str | None = None,
     default_status: int = 400,
-    include_http_status: bool = True,
 ) -> tuple[int, Dict[str, Any]]:
     """Convenience wrapper around :meth:`MessageCatalog.format_error`."""
 
+    _default_catalog = MessageCatalog()
     return _default_catalog.format_error(
         message_key,
-        values,
-        version=version,
+        values=values,
         language=language,
         default_status=default_status,
-        include_http_status=include_http_status,
     )
-
-
-__all__ = [
-    "MessageCatalog",
-    "MessageCatalogError",
-    "MessageNotFoundError",
-    "MessageTemplate",
-    "MissingMessageVariablesError",
-    "format_error",
-    "get_message",
-]

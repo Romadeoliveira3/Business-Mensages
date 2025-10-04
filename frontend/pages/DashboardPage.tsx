@@ -21,13 +21,11 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
   );
   const {
     messages,
-    history: historyMap,
     loading: apiLoading,
     error,
     createMessage,
     updateMessage,
     deleteMessage,
-    refresh: refreshMessages,
   } = useMessages(apiLanguage);
 
   const [selectedMessage, setSelectedMessage] =
@@ -137,9 +135,6 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
             message={selectedMessage}
             onSave={handleSaveMessage}
             onClose={handleCloseEditor}
-            history={
-              selectedMessage ? historyMap[selectedMessage.id] || [] : []
-            }
           />
         ) : (
           <div>

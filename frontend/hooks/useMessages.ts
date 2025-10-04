@@ -1,21 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { BusinessMessage, MessageHistory, MessageInput } from "../types";
+import type { BusinessMessage, MessageInput } from "../types";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
 
 type MessageErrorType = "load" | "create" | "update" | "delete";
 
-type ApiMessage = BusinessMessage & { history?: MessageHistory[] };
-
 type MessageState = {
   messages: BusinessMessage[];
-  history: Record<string, MessageHistory[]>;
 };
 
 const initialState: MessageState = {
   messages: [],
-  history: {},
 };
 
 export const useMessages = (language?: string) => {
@@ -24,7 +20,6 @@ export const useMessages = (language?: string) => {
   const [error, setError] = useState<MessageErrorType | null>(null);
 
   const fetchMessages = useCallback(async () => {
-    // Verifica se o usuário está autenticado antes de buscar mensagens
     const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
     if (!isAuthenticated) {
       setState(initialState);
@@ -45,15 +40,8 @@ export const useMessages = (language?: string) => {
       if (!response.ok) {
         throw new Error("Failed to load messages");
       }
-      const data: ApiMessage[] = await response.json();
-      const history: Record<string, MessageHistory[]> = {};
-      const messages: BusinessMessage[] = data.map(
-        ({ history: historyEntries = [], ...messageFields }) => {
-          history[messageFields.id] = historyEntries;
-          return messageFields;
-        }
-      );
-      setState({ messages, history });
+      const data: BusinessMessage[] = await response.json();
+      setState({ messages: data });
     } catch (err) {
       console.error(err);
       setError("load");
@@ -63,7 +51,6 @@ export const useMessages = (language?: string) => {
   }, [language]);
 
   useEffect(() => {
-    // Verifica se o usuário está autenticado antes de buscar mensagens
     const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
     if (isAuthenticated) {
       void fetchMessages();
@@ -75,19 +62,17 @@ export const useMessages = (language?: string) => {
       setLoading(true);
       setError(null);
       try {
-      const response = await fetch(`${API_BASE_URL}/messages`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message_key: payload.message_key,
-          translations: payload.translations,
-          variables: payload.variables,
-          http_status: payload.http_status,
-          updated_by: payload.updated_by,
-        }),
-      });
+        const response = await fetch(`${API_BASE_URL}/messages`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            message_key: payload.message_key,
+            code: payload.code,
+            translations: payload.translations,
+          }),
+        });
         if (!response.ok) {
           throw new Error("Failed to create message");
         }
@@ -108,19 +93,17 @@ export const useMessages = (language?: string) => {
       setLoading(true);
       setError(null);
       try {
-      const response = await fetch(`${API_BASE_URL}/messages/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message_key: payload.message_key,
-          translations: payload.translations,
-          variables: payload.variables,
-          http_status: payload.http_status,
-          updated_by: payload.updated_by,
-        }),
-      });
+        const response = await fetch(`${API_BASE_URL}/messages/${id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            message_key: payload.message_key,
+            code: payload.code,
+            translations: payload.translations,
+          }),
+        });
         if (!response.ok) {
           throw new Error("Failed to update message");
         }
@@ -162,7 +145,6 @@ export const useMessages = (language?: string) => {
   const value = useMemo(
     () => ({
       messages: state.messages,
-      history: state.history,
       loading,
       error,
       createMessage,
@@ -170,15 +152,7 @@ export const useMessages = (language?: string) => {
       deleteMessage,
       refresh: fetchMessages,
     }),
-    [
-      state,
-      loading,
-      error,
-      createMessage,
-      updateMessage,
-      deleteMessage,
-      fetchMessages,
-    ]
+    [state, loading, error, createMessage, updateMessage, deleteMessage, fetchMessages]
   );
 
   return value;
