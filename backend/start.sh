@@ -12,7 +12,7 @@ from app.db.session import SessionLocal
 from app.models.business_message import Language
 
 session = SessionLocal()
-defaults = ["en", "es", "pt-BR"]
+defaults = ["pt-BR", "en", "es"]
 try:
     for code in defaults:
         if session.get(Language, code) is None:

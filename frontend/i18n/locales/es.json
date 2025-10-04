@@ -1,0 +1,56 @@
+{
+  "app": {
+    "title": "Mensajes de Negocio"
+  },
+  "status": {
+    "loading": "Cargando mensajes..."
+  },
+  "alerts": {
+    "loadError": "No fue posible cargar los mensajes. Inténtalo de nuevo más tarde.",
+    "deleteError": "No fue posible eliminar el mensaje seleccionado.",
+    "saveError": "No fue posible guardar el mensaje."
+  },
+  "login": {
+    "title": "Accede a tu panel",
+    "usernamePlaceholder": "Usuario",
+    "passwordPlaceholder": "Contraseña",
+    "signInButton": "Iniciar sesión",
+    "loggingIn": "Iniciando sesión...",
+    "invalidCredentials": "Credenciales inválidas. Verifica tu usuario y contraseña.",
+    "credentialsHint": "<strong>Credenciales predeterminadas:</strong> admin / admin"
+  },
+  "messageList": {
+    "title": "Mensajes",
+    "newMessageButton": "Nuevo mensaje",
+    "filterPlaceholder": "Busca por clave o código",
+    "deleteConfirmation": "¿Estás seguro de que deseas eliminar este mensaje?",
+    "noMessagesFound": "No se encontraron mensajes.",
+    "table": {
+      "key": "Clave",
+      "code": "Código",
+      "languages": "Idiomas",
+      "actions": "Acciones"
+    }
+  },
+  "pagination": {
+    "pageInfo": "Página {currentPage} de {totalPages}",
+    "itemsPerPageLabel": "Elementos por página",
+    "itemsPerPage": "{count} elementos"
+  },
+  "editor": {
+    "newMessage": "Crear nuevo mensaje",
+    "editMessage": "Editar mensaje",
+    "subtitle": "Proporciona la clave, el código y las traducciones para este mensaje.",
+    "messageKey": "Clave del mensaje",
+    "code": "Código del mensaje",
+    "languages": "Idiomas",
+    "title": "Título"
+  },
+  "common": {
+    "cancel": "Cancelar",
+    "create": "Crear",
+    "saveChanges": "Guardar cambios",
+    "close": "Cerrar",
+    "logout": "Salir"
+  }
+}

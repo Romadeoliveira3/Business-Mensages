@@ -16,7 +16,7 @@ interface DashboardPageProps {
 const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
   const { t, locale } = useLocalization();
   const apiLanguage = useMemo(
-    () => (locale === "pt" ? "pt-BR" : "en"),
+    () => locale,
     [locale],
   );
   const {
@@ -106,7 +106,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
               onClick={handleLogout}
               className="text-sm text-slate-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-400"
             >
-              Sair
+              {t("common.logout")}
             </button>
             <LanguageSwitcher />
             <ThemeSwitcher />

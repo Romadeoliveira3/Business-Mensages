@@ -8,8 +8,8 @@ interface MessageEditorProps {
   onClose: () => void;
 }
 
-const DEFAULT_LANGUAGE = "en";
-const ALLOWED_LANGUAGES = ["en", "pt-BR", "es"] as const;
+const DEFAULT_LANGUAGE = "pt-BR";
+const ALLOWED_LANGUAGES = ["pt-BR", "en", "es"] as const;
 
 const createEmptyTranslation = (language_code: string): MessageTranslation => ({
   language_code,
@@ -27,8 +27,8 @@ const MessageEditor: React.FC<MessageEditorProps> = ({ message, onSave, onClose 
   const [translationValues, setTranslationValues] = useState<
     Record<string, MessageTranslation>
   >({
-    en: createEmptyTranslation("en"),
     "pt-BR": createEmptyTranslation("pt-BR"),
+    en: createEmptyTranslation("en"),
     es: createEmptyTranslation("es"),
   });
   const [selectedLanguage, setSelectedLanguage] = useState<string>(DEFAULT_LANGUAGE);
@@ -56,8 +56,8 @@ const MessageEditor: React.FC<MessageEditorProps> = ({ message, onSave, onClose 
     } else {
       setMetadata({ ...defaultMetadata });
       setTranslationValues({
-        en: createEmptyTranslation("en"),
         "pt-BR": createEmptyTranslation("pt-BR"),
+        en: createEmptyTranslation("en"),
         es: createEmptyTranslation("es"),
       });
       setSelectedLanguage(DEFAULT_LANGUAGE);

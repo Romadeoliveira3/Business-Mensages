@@ -42,8 +42,13 @@ class MessageConflictError(MessageServiceError):
     """Raised when a unique constraint conflict occurs."""
 
 
-def list_messages(db: Session) -> list[BusinessMessage]:
-    """Return all business messages ordered by key."""
+def list_messages(
+    db: Session,
+    *,
+    message_key: str | None = None,
+    code: str | None = None,
+) -> list[BusinessMessage]:
+    """Return business messages ordered by key applying optional filters."""
 
     stmt = (
         select(BusinessMessage)
@@ -52,6 +57,12 @@ def list_messages(db: Session) -> list[BusinessMessage]:
         )
         .order_by(BusinessMessage.message_key)
     )
+
+    if message_key:
+        stmt = stmt.where(BusinessMessage.message_key == message_key)
+    if code:
+        stmt = stmt.where(BusinessMessage.code == code)
+
     return list(db.scalars(stmt).unique())
 
 

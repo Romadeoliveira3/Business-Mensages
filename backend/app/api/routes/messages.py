@@ -60,17 +60,20 @@ def _serialise_message(message: BusinessMessage, language: str | None) -> Busine
 
 @router.get("/", response_model=List[BusinessMessageRead])
 def read_messages(
-    language: str | None = Query(None, max_length=16),
+    message_key: str | None = Query(None, max_length=255),
+    code: str | None = Query(None, max_length=32),
     db: Session = Depends(get_db),
 ) -> List[BusinessMessageRead]:
     """Return all stored business messages."""
     import logging
     logger = logging.getLogger("uvicorn")
     logger.info("Endpoint acessado: GET /messages/")
-    
-    messages = list_messages(db)
-    logger.info(f"Número de mensagens retornadas: {len(messages)}")
-    return [_serialise_message(message, language) for message in messages]
+
+    messages = list_messages(db, message_key=message_key, code=code)
+    logger.info(
+        "Número de mensagens retornadas: %s", len(messages)
+    )
+    return [_serialise_message(message, None) for message in messages]
 
 
 @router.post(

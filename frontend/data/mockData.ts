@@ -7,7 +7,7 @@ const existingMessages: BusinessMessage[] = [
     code: "MSG-001",
     title: "Usuário Duplicado",
     selected_language: "pt-BR",
-    available_languages: ["pt-BR", "en"],
+    available_languages: ["pt-BR", "en", "es"],
     translations: [
       {
         language_code: "pt-BR",
@@ -17,6 +17,10 @@ const existingMessages: BusinessMessage[] = [
         language_code: "en",
         title: "User Already Exists",
       },
+      {
+        language_code: "es",
+        title: "Usuario duplicado",
+      },
     ],
   },
   {
@@ -25,7 +29,7 @@ const existingMessages: BusinessMessage[] = [
     code: "MSG-002",
     title: "Pedido Expirado",
     selected_language: "pt-BR",
-    available_languages: ["pt-BR", "en"],
+    available_languages: ["pt-BR", "en", "es"],
     translations: [
       {
         language_code: "pt-BR",
@@ -34,6 +38,10 @@ const existingMessages: BusinessMessage[] = [
       {
         language_code: "en",
         title: "Order Expired",
+      },
+      {
+        language_code: "es",
+        title: "Pedido vencido",
       },
     ],
   },

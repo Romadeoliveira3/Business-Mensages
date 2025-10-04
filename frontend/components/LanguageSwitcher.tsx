@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useLocalization } from '../contexts/LocalizationContext';
+import { useLocalization, SUPPORTED_LOCALES, Locale } from '../contexts/LocalizationContext';
 import { GlobeIcon } from './icons/GlobeIcon';
 
 const LanguageSwitcher: React.FC = () => {
@@ -7,9 +7,10 @@ const LanguageSwitcher: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const languages = {
+  const languages: Record<Locale, string> = {
+    'pt-BR': 'Português (Brasil)',
     en: 'English',
-    'pt': 'Português',
+    es: 'Español',
   };
 
   useEffect(() => {
@@ -22,7 +23,7 @@ const LanguageSwitcher: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleLanguageChange = (lang: 'en' | 'pt') => {
+  const handleLanguageChange = (lang: Locale) => {
     setLocale(lang);
     setIsOpen(false);
   };
@@ -39,17 +40,17 @@ const LanguageSwitcher: React.FC = () => {
       {isOpen && (
         <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-slate-800 rounded-md shadow-lg z-20">
           <ul>
-            {Object.entries(languages).map(([code, name]) => (
+            {SUPPORTED_LOCALES.map((code) => (
               <li key={code}>
                 <button
-                  onClick={() => handleLanguageChange(code as 'en' | 'pt')}
+                  onClick={() => handleLanguageChange(code)}
                   className={`block w-full text-left px-4 py-2 text-sm ${
                     locale === code
                       ? 'bg-primary-500 text-white'
                       : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'
                   }`}
                 >
-                  {name}
+                  {languages[code]}
                 </button>
               </li>
             ))}

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-type Locale = 'en' | 'pt';
+export const SUPPORTED_LOCALES = ['pt-BR', 'en', 'es'] as const;
+export type Locale = (typeof SUPPORTED_LOCALES)[number];
 type Translations = Record<string, any>;
 
 interface LocalizationContextType {
@@ -12,20 +13,47 @@ interface LocalizationContextType {
 const LocalizationContext = createContext<LocalizationContextType | undefined>(undefined);
 
 export const LocalizationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const normaliseLocale = (value?: string | null): Locale | null => {
+    if (!value) {
+      return null;
+    }
+    const cleaned = value.trim().replace('_', '-').toLowerCase();
+    if (!cleaned) {
+      return null;
+    }
+    if (cleaned === 'pt' || cleaned.startsWith('pt-')) {
+      return 'pt-BR';
+    }
+    if (cleaned === 'es' || cleaned.startsWith('es')) {
+      return 'es';
+    }
+    if (cleaned === 'en' || cleaned.startsWith('en')) {
+      return 'en';
+    }
+    return null;
+  };
+
   const [locale, setLocale] = useState<Locale>(() => {
-    const savedLocale = localStorage.getItem('locale');
-    if (savedLocale === 'en' || savedLocale === 'pt') {
+    const storedLocale =
+      typeof window !== 'undefined' ? window.localStorage.getItem('locale') : null;
+    const savedLocale = normaliseLocale(storedLocale);
+    if (savedLocale) {
       return savedLocale;
     }
-    // Default to browser language or 'en'
-    const browserLang = navigator.language.split(/[-_]/)[0];
-    return browserLang === 'pt' ? 'pt' : 'en';
+    const browserLocale = normaliseLocale(
+      typeof navigator !== 'undefined' ? navigator.language : undefined,
+    );
+    return browserLocale ?? 'pt-BR';
   });
   
   const [loadedTranslations, setLoadedTranslations] = useState<Translations>({});
 
   useEffect(() => {
-    localStorage.setItem('locale', locale);
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('locale', locale);
+    }
+
+    setLoadedTranslations({});
 
     const fetchTranslations = async () => {
       try {
@@ -37,9 +65,20 @@ export const LocalizationProvider: React.FC<{ children: ReactNode }> = ({ childr
         setLoadedTranslations(data);
       } catch (error) {
         console.error(`Failed to load translations for locale "${locale}":`, error);
+        if (locale !== 'pt-BR') {
+          try {
+            const fallbackResponse = await fetch('./i18n/locales/pt-BR.json');
+            if (fallbackResponse.ok) {
+              const fallbackData = await fallbackResponse.json();
+              setLoadedTranslations(fallbackData);
+            }
+          } catch (fallbackError) {
+            console.error('Failed to load fallback translations:', fallbackError);
+          }
+        }
       }
     };
-    
+
     fetchTranslations();
   }, [locale]);
 

@@ -50,6 +50,7 @@
     "cancel": "Cancelar",
     "create": "Criar",
     "saveChanges": "Salvar alterações",
-    "close": "Fechar"
+    "close": "Fechar",
+    "logout": "Sair"
   }
 }

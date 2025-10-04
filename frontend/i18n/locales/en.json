@@ -50,6 +50,7 @@
     "cancel": "Cancel",
     "create": "Create",
     "saveChanges": "Save changes",
-    "close": "Close"
+    "close": "Close",
+    "logout": "Sign out"
   }
 }
