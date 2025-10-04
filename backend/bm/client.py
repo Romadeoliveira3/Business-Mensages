@@ -62,7 +62,7 @@ class BusinessMessages:
         session_factory: SessionFactory | None = None,
         *,
         enable_cache: bool = True,
-        default_language: str | None = None,
+        default_language: str | None = "pt-BR",
     ) -> None:
         self._catalog = MessageCatalog(
             session_factory,
