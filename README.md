@@ -46,6 +46,26 @@ The backend is containerized and ships with Docker and Docker Compose workflows.
    (the folder is ignored by git). To use your global Docker config instead and
    avoid creating `.docker-config/`, run `make LOCAL_DOCKER_CONFIG=0 up`.
 
+## Configurando o .docker-config
+
+Ao clonar o repositório, copie o diretório de exemplo para criar sua configuração local:
+
+No PowerShell (Windows):
+
+```
+Copy-Item .docker-config.example .docker-config -Recurse
+```
+
+No Linux/Mac:
+
+```
+cp -r .docker-config.example .docker-config
+```
+
+Depois, ajuste os arquivos conforme necessário para seu ambiente.
+
+---
+
 ## Backend logs
 
 The backend runs with `--reload` and `--log-level debug` for development.
