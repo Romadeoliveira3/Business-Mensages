@@ -71,7 +71,7 @@ def test_language_selection(session_factory: SessionFactory) -> None:
         create_message(session, key="hello", version=1, body="Hello {name}")
         session.commit()
 
-        session.add(Language(code="pt-BR", name="Português (Brasil)"))
+        session.add(Language(code="pt-BR"))
         session.add(
             MessageTranslation(
                 message_id="hello-1",

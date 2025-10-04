@@ -52,7 +52,7 @@ def create_message(
     now = datetime.utcnow()
     language = session.get(Language, language_code)
     if language is None:
-        language = Language(code=language_code, name=language_name or language_code)
+        language = Language(code=language_code)
         session.add(language)
         session.flush()
 

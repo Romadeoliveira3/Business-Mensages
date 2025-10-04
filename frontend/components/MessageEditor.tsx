@@ -46,7 +46,8 @@ const HighlightedBody: React.FC<{ body: string }> = ({ body }) => {
   }
 };
 
-const DEFAULT_LANGUAGE = "en";
+const DEFAULT_LANGUAGE = "pt-BR";
+const ALLOWED_LANGUAGES = ["pt-BR", "en", "es"] as const;
 
 const defaultMetadata: Omit<MessageInput, "translations" | "id"> = {
   message_key: "",
@@ -55,12 +56,8 @@ const defaultMetadata: Omit<MessageInput, "translations" | "id"> = {
   updated_by: "admin@example.com",
 };
 
-const createEmptyTranslation = (
-  language_code: string,
-  language_name?: string | null,
-): MessageTranslation => ({
+const createEmptyTranslation = (language_code: string): MessageTranslation => ({
   language_code,
-  language_name,
   title: "",
   body: "",
 });
@@ -75,7 +72,9 @@ const MessageEditor: React.FC<MessageEditorProps> = ({
   const [translationValues, setTranslationValues] = useState<
     Record<string, MessageTranslation>
   >({
-    [DEFAULT_LANGUAGE]: createEmptyTranslation(DEFAULT_LANGUAGE, "English"),
+    "pt-BR": createEmptyTranslation("pt-BR"),
+    en: createEmptyTranslation("en"),
+    es: createEmptyTranslation("es"),
   });
   const [selectedLanguage, setSelectedLanguage] = useState(DEFAULT_LANGUAGE);
   const [variablesInput, setVariablesInput] = useState("");
@@ -85,30 +84,22 @@ const MessageEditor: React.FC<MessageEditorProps> = ({
 
   useEffect(() => {
     if (message) {
-      const translations =
-        message.translations.length > 0
-          ? message.translations
-          : [
-              createEmptyTranslation(
-                message.selected_language ?? DEFAULT_LANGUAGE,
-              ),
-            ].map((translation) => ({
-              ...translation,
-              title: translation.title || message.title,
-              body: translation.body || message.body,
-            }));
-
+      const translations = message.translations.length > 0 ? message.translations : [];
       const translationMap: Record<string, MessageTranslation> = {};
       for (const translation of translations) {
-        translationMap[translation.language_code] = {
-          ...translation,
-        };
+        translationMap[translation.language_code] = { ...translation };
+      }
+      // Ensure all allowed languages are present with empty defaults
+      for (const code of ALLOWED_LANGUAGES) {
+        if (!translationMap[code]) {
+          translationMap[code] = createEmptyTranslation(code);
+        }
       }
 
-      const nextSelected =
-        message.selected_language ??
-        translations[0]?.language_code ??
-        DEFAULT_LANGUAGE;
+      const fromMessage = message.selected_language && ALLOWED_LANGUAGES.includes(message.selected_language as any)
+        ? message.selected_language
+        : undefined;
+      const nextSelected = fromMessage ?? DEFAULT_LANGUAGE;
 
       setTranslationValues(translationMap);
       setSelectedLanguage(nextSelected);
@@ -121,7 +112,9 @@ const MessageEditor: React.FC<MessageEditorProps> = ({
       setVariablesInput(message.variables.join(","));
     } else {
       setTranslationValues({
-        [DEFAULT_LANGUAGE]: createEmptyTranslation(DEFAULT_LANGUAGE, "English"),
+        "pt-BR": createEmptyTranslation("pt-BR"),
+        en: createEmptyTranslation("en"),
+        es: createEmptyTranslation("es"),
       });
       setSelectedLanguage(DEFAULT_LANGUAGE);
       setMetadata({ ...defaultMetadata });
@@ -130,7 +123,7 @@ const MessageEditor: React.FC<MessageEditorProps> = ({
     setSampleValues({});
   }, [message]);
 
-  const availableLanguages = Object.keys(translationValues);
+  const availableLanguages = [...ALLOWED_LANGUAGES];
   const currentTranslation = translationValues[selectedLanguage] ??
     createEmptyTranslation(selectedLanguage);
 
@@ -149,7 +142,7 @@ const MessageEditor: React.FC<MessageEditorProps> = ({
   };
 
   const handleTranslationFieldChange = (
-    field: "title" | "body" | "language_name",
+    field: "title" | "body",
     value: string,
   ) => {
     setTranslationValues((prev) => ({
@@ -183,37 +176,7 @@ const MessageEditor: React.FC<MessageEditorProps> = ({
     setSampleValues((prev) => ({ ...prev, [variable]: value }));
   };
 
-  const handleAddLanguage = () => {
-    const code = window
-      .prompt(t("editor.translations.addLanguagePrompt"))
-      ?.trim();
-    if (!code) {
-      return;
-    }
-    setTranslationValues((prev) => {
-      if (prev[code]) {
-        return prev;
-      }
-      return {
-        ...prev,
-        [code]: createEmptyTranslation(code),
-      };
-    });
-    setSelectedLanguage(code);
-  };
-
-  const handleRemoveLanguage = () => {
-    if (availableLanguages.length <= 1) {
-      return;
-    }
-    setTranslationValues((prev) => {
-      const updated = { ...prev };
-      delete updated[selectedLanguage];
-      const next = Object.keys(updated)[0] ?? DEFAULT_LANGUAGE;
-      setSelectedLanguage(next);
-      return updated;
-    });
-  };
+  // Removed add/remove language handlers; only selection is supported now.
 
   const handleSelectLanguage = (code: string) => {
     setTranslationValues((prev) => {
@@ -230,12 +193,17 @@ const MessageEditor: React.FC<MessageEditorProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const translations = Object.values(translationValues).map((translation) => ({
-      language_code: translation.language_code,
-      title: translation.title,
-      body: translation.body,
-      language_name: translation.language_name,
-    }));
+    const translations = Object.values(translationValues)
+      .filter((tr) => (tr.title?.trim() || tr.body?.trim()))
+      .map((translation) => ({
+        language_code: translation.language_code,
+        title: translation.title,
+        body: translation.body,
+      }));
+    if (translations.length === 0) {
+      window.alert(t("alerts.saveError"));
+      return;
+    }
     await onSave({
       ...metadata,
       id: message?.id,
@@ -290,7 +258,6 @@ const MessageEditor: React.FC<MessageEditorProps> = ({
     ? t("editor.title.edit", { key: message.message_key })
     : t("editor.title.create");
 
-  const canRemoveLanguage = availableLanguages.length > 1;
 
   return (
     <div className="bg-white dark:bg-slate-800 p-8 rounded-xl shadow-lg relative">
@@ -349,46 +316,10 @@ const MessageEditor: React.FC<MessageEditorProps> = ({
                   </option>
                 ))}
               </select>
-              <button
-                type="button"
-                onClick={handleAddLanguage}
-                className="px-3 py-1 text-sm font-semibold text-primary-600 hover:text-primary-800 dark:text-primary-300 dark:hover:text-primary-100"
-              >
-                {t("editor.translations.addLanguage")}
-              </button>
-              <button
-                type="button"
-                onClick={handleRemoveLanguage}
-                disabled={!canRemoveLanguage}
-                className="px-3 py-1 text-sm font-semibold text-red-500 hover:text-red-700 disabled:text-slate-400 disabled:cursor-not-allowed dark:text-red-300 dark:hover:text-red-200"
-                title={
-                  canRemoveLanguage
-                    ? undefined
-                    : t("editor.translations.removeLanguageDisabled")
-                }
-              >
-                {t("editor.translations.removeLanguage")}
-              </button>
             </div>
           </div>
 
-          <div>
-            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-              {t("editor.translations.languageNameLabel")}
-            </label>
-            <input
-              type="text"
-              value={currentTranslation.language_name || ""}
-              onChange={(event) =>
-                handleTranslationFieldChange(
-                  "language_name",
-                  event.target.value,
-                )
-              }
-              placeholder={t("editor.translations.languageNamePlaceholder")}
-              className="mt-1 block w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-            />
-          </div>
+          {/* Language name field removed: only codes are supported */}
 
           <div>
             <div className="flex items-center gap-2">

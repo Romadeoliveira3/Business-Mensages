@@ -23,13 +23,11 @@ DEFAULT_MESSAGES = [
         "translations": [
             {
                 "language_code": "en",
-                "language_name": "English",
                 "title": "Welcome to Business Messages",
                 "body": "{\"message\": \"Hello {user_name}, welcome aboard!\"}",
             },
             {
                 "language_code": "pt-BR",
-                "language_name": "Português (Brasil)",
                 "title": "Bem-vindo ao Business Messages",
                 "body": "{\"message\": \"Olá {user_name}, bem-vindo a bordo!\"}",
             },
@@ -43,13 +41,11 @@ DEFAULT_MESSAGES = [
         "translations": [
             {
                 "language_code": "en",
-                "language_name": "English",
                 "title": "Payment Failure",
                 "body": "Dear {user_name}, we were unable to process your payment ending in {card_last4}.",
             },
             {
                 "language_code": "pt-BR",
-                "language_name": "Português (Brasil)",
                 "title": "Falha no pagamento",
                 "body": "Olá {user_name}, não conseguimos processar seu pagamento com final {card_last4}.",
             },
@@ -63,13 +59,11 @@ DEFAULT_MESSAGES = [
         "translations": [
             {
                 "language_code": "en",
-                "language_name": "English",
                 "title": "Password reset instructions",
                 "body": "{\"subject\": \"Password reset\", \"content\": \"Use the token {reset_token} within 10 minutes.\"}",
             },
             {
                 "language_code": "pt-BR",
-                "language_name": "Português (Brasil)",
                 "title": "Instruções para redefinir a senha",
                 "body": "{\"subject\": \"Redefinição de senha\", \"content\": \"Use o token {reset_token} em até 10 minutos.\"}",
             },
@@ -112,7 +106,6 @@ def main() -> int:
                 payload["translations"] = [
                     {
                         "language_code": payload.pop("language_code", "en"),
-                        "language_name": payload.pop("language_name", None),
                         "title": title,
                         "body": body,
                     }

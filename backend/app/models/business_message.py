@@ -59,7 +59,6 @@ class Language(Base):
     __tablename__ = "languages"
 
     code: Mapped[str] = mapped_column(String(16), primary_key=True)
-    name: Mapped[str] = mapped_column(String(255), nullable=False)
 
     translations: Mapped[List["MessageTranslation"]] = relationship(
         back_populates="language",

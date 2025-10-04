@@ -60,12 +60,15 @@ class BusinessMessageUpdate(BaseModel):
 
 
 class MessageTranslationBase(BaseModel):
-    """Shared attributes for message translations."""
+    """Shared attributes for message translations.
+
+    Only the language ``code`` is accepted from clients. Names are managed
+    internally and exposed only in read models.
+    """
 
     language_code: str = Field(..., min_length=2, max_length=16)
     title: str
     body: str
-    language_name: Optional[str] = Field(default=None)
 
 
 class MessageTranslationCreate(MessageTranslationBase):
@@ -74,8 +77,6 @@ class MessageTranslationCreate(MessageTranslationBase):
 
 class MessageTranslationRead(MessageTranslationBase):
     """Translation payload returned to API consumers."""
-
-    language_name: str | None
 
 
 class BusinessMessageRead(BusinessMessageBase):

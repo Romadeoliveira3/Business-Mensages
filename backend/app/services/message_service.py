@@ -17,6 +17,30 @@ from app.models.business_message import (
 )
 from app.schemas import BusinessMessageCreate, BusinessMessageUpdate
 
+# ---------------------------------------------------------------------------
+# Language handling: restrict to a predefined set and canonicalise codes
+# ---------------------------------------------------------------------------
+
+_ALLOWED_LANGS: set[str] = {"en", "es", "pt-br"}
+
+
+def _normalise_lang_code(code: str) -> str:
+    """Return canonical code for a supported language.
+
+    - Accepts case-insensitive codes, dash/underscore variants (e.g. pt_br).
+    - Maps plain "pt" to canonical "pt-BR".
+    - Raises ``MessageServiceError`` for unsupported codes.
+    """
+
+    value = code.strip().replace("_", "-").lower()
+    if value == "pt":
+        value = "pt-br"
+    if value not in _ALLOWED_LANGS:
+        raise MessageServiceError(
+            f"Unsupported language code '{code}'. Allowed: en, es, pt-BR"
+        )
+    return "pt-BR" if value == "pt-br" else value
+
 
 class MessageServiceError(RuntimeError):
     """Base error raised by message service functions."""
@@ -77,17 +101,19 @@ def _record_history(
     db.add(history_entry)
 
 
-def _ensure_language(db: Session, code: str, name: str | None = None) -> Language:
-    """Return an existing ``Language`` row or create a new one."""
+def _ensure_language(db: Session, code: str) -> Language:
+    """Return an existing ``Language`` row or create a new one.
 
-    normalised = code.strip()
-    language = db.get(Language, normalised)
+    Only a supported language ``code`` is accepted. The stored name is derived
+    from the predefined labels and not provided by clients.
+    """
+
+    canonical = _normalise_lang_code(code)
+    language = db.get(Language, canonical)
     if language is not None:
-        if name and language.name != name:
-            language.name = name
         return language
 
-    language = Language(code=normalised, name=name or normalised)
+    language = Language(code=canonical)
     db.add(language)
     db.flush()
     return language
@@ -114,11 +140,7 @@ def create_message(db: Session, message_in: BusinessMessageCreate) -> BusinessMe
     db.add(message)
 
     for translation_in in message_in.translations:
-        language = _ensure_language(
-            db,
-            translation_in.language_code,
-            translation_in.language_name,
-        )
+        language = _ensure_language(db, translation_in.language_code)
         message.translations.append(
             MessageTranslation(
                 message_id=message_id,
@@ -174,11 +196,7 @@ def update_message(
     if translations_payload is not None:
         existing = {translation.language_code: translation for translation in message.translations}
         for translation_in in translations_payload:
-            language = _ensure_language(
-                db,
-                translation_in.language_code,
-                translation_in.language_name,
-            )
+            language = _ensure_language(db, translation_in.language_code)
             current = existing.get(language.code)
             change_key = f"translation:{language.code}"
             if current is None:

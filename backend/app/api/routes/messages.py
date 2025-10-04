@@ -59,7 +59,6 @@ def _serialise_message(message: BusinessMessage, language: str | None) -> Busine
         translations=[
             MessageTranslationRead(
                 language_code=translation.language_code,
-                language_name=translation.language.name if translation.language else None,
                 title=translation.title,
                 body=translation.body,
             )

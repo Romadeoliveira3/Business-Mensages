@@ -3,7 +3,6 @@ export interface MessageTranslation {
     language_code: string;
     title: string;
     body: string;
-    language_name?: string | null;
 }
 
 export interface BusinessMessage {
