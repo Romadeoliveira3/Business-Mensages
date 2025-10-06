@@ -2,6 +2,7 @@
 
 from .message_service import (
     MessageConflictError,
+    MessageServiceError,
     create_message,
     delete_message,
     get_message,
@@ -11,6 +12,7 @@ from .message_service import (
 
 __all__ = [
     "MessageConflictError",
+    "MessageServiceError",
     "create_message",
     "delete_message",
     "get_message",

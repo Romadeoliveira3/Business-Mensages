@@ -17,6 +17,7 @@ from app.schemas import (
 )
 from app.services import (
     MessageConflictError,
+    MessageServiceError,
     create_message,
     delete_message,
     get_message,
@@ -96,6 +97,11 @@ def create_message_endpoint(
             status_code=status.HTTP_409_CONFLICT,
             detail=str(exc),
         ) from exc
+    except MessageServiceError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        ) from exc
 
 
 @router.get("/{message_id}", response_model=BusinessMessageRead)
@@ -131,6 +137,11 @@ def update_message_endpoint(
     except MessageConflictError as exc:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
+            detail=str(exc),
+        ) from exc
+    except MessageServiceError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=str(exc),
         ) from exc
 
