@@ -1,5 +1,7 @@
-import bm
-import bm.client as client_module
+import importlib
+
+bm = importlib.import_module("bm")
+client_module = importlib.import_module("bm.client")
 import pytest
 
 from bm import BusinessMessages
@@ -42,6 +44,10 @@ def test_problem_payload_shape(session_factory: SessionFactory) -> None:
     assert problem["payload"]["title"] == "Not allowed for Ana"
     assert problem["payload"]["code"] == "MSG-NA"
 
+    status, payload = client.format_error("not_allowed", values={"user": "Ana"})
+    assert status == 400
+    assert payload["title"] == "Not allowed for Ana"
+
 
 def test_module_shortcuts_delegate_to_default(
     session_factory: SessionFactory, monkeypatch: pytest.MonkeyPatch
@@ -68,6 +74,10 @@ def test_module_shortcuts_delegate_to_default(
     problem = bm.problem("greeting", values={"name": "Ana"})
     assert problem["status"] == 400
     assert problem["payload"]["title"] == "Hi Ana"
+
+    status, payload = bm.format_error("greeting", values={"name": "Ana"})
+    assert status == 400
+    assert payload["title"] == "Hi Ana"
 
 
 def test_language_selection(session_factory: SessionFactory) -> None:

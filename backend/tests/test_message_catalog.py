@@ -1,10 +1,6 @@
 import pytest
 
-from app.lib.message_catalog import (
-    MessageCatalog,
-    MessageNotFoundError,
-    MissingMessageVariablesError,
-)
+from bm import MessageCatalog, MessageNotFoundError, MissingMessageVariablesError
 from app.models.business_message import Language, MessageTranslation
 from tests.conftest import SessionFactory, create_message
 
