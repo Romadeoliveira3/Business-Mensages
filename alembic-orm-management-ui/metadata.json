@@ -1,5 +1,0 @@
-{
-  "name": "Alembic ORM Management UI",
-  "description": "A modern, intuitive UI to visualize SQLAlchemy/Pydantic models and manage Alembic migrations. It allows for creating, editing, and managing migration history and versions visually.",
-  "requestFramePermissions": []
-}
