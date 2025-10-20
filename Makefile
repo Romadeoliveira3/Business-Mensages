@@ -2,15 +2,14 @@
 
 .PHONY: up down restart prune clean restart-docker all help test test-one
 
-# Optional: use a repo-local Docker config to avoid Desktop credential helper issues.
-# Set LOCAL_DOCKER_CONFIG=0 to disable and use your global Docker settings.
-LOCAL_DOCKER_CONFIG ?= 1
+# Configuração para Docker
+LOCAL_DOCKER_CONFIG ?= 0
 DOCKER_CONFIG_DIR := $(CURDIR)/.docker-config
 
 ifeq ($(LOCAL_DOCKER_CONFIG),1)
-DC := DOCKER_CONFIG=$(DOCKER_CONFIG_DIR) docker compose
+DC = docker compose
 else
-DC := docker compose
+DC = docker compose
 endif
 
 # Cores para saída
@@ -25,7 +24,7 @@ default: help
 
 ## Inicia os containers em modo detached com rebuild
 up:
-	@echo "$(GREEN)Iniciando containers com docker-compose (--build)...$(NC)"
+	@echo "$(GREEN)Iniciando containers com docker compose (--build)...$(NC)"
 	$(DC) up --build -d
 	@echo "$(GREEN)Containers iniciados com sucesso!$(NC)"
 
@@ -48,16 +47,11 @@ clean:
 	docker system prune -a -f --volumes
 	@echo "$(RED)Limpeza completa finalizada!$(NC)"
 
-## Remove a pasta local de config do Docker (arquivos *.lock, buildx, etc.)
-clean-docker-config:
-	@echo "$(YELLOW)Removendo .docker-config (cache local do Docker)...$(NC)"
-	@if [ -d "$(DOCKER_CONFIG_DIR)" ]; then rm -rf "$(DOCKER_CONFIG_DIR)"; fi
-	@echo "$(GREEN).docker-config removida.$(NC)"
-
-## Reinicia o serviço Docker (Windows)
+## Reinicia o serviço Docker
 restart-docker:
 	@echo "$(YELLOW)Reiniciando o serviço Docker...$(NC)"
-	@powershell -Command "Restart-Service -Name docker -Force"
+	@echo "$(YELLOW)Nota: Este comando pode requerer sudo no WSL ou ser executado diretamente no Windows$(NC)"
+	-@(command -v sudo >/dev/null 2>&1 && sudo service docker restart) || echo "Execute 'Restart-Service -Name docker -Force' no PowerShell como administrador"
 	@echo "$(GREEN)Serviço Docker reiniciado!$(NC)"
 
 ## Reinicia todos os containers (down e up)

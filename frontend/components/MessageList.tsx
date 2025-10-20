@@ -1,9 +1,8 @@
-
 import React, { useState, useMemo } from 'react';
 import type { BusinessMessage } from '../types';
-import { EditIcon } from './icons/EditIcon';
-import { TrashIcon } from './icons/TrashIcon';
-import { useLocalization } from '../contexts/LocalizationContext';
+import EditIcon from './icons/EditIcon';
+import DeleteIcon from './icons/DeleteIcon';
+import { useLocalization } from '../context/LocalizationContext';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
 
@@ -13,13 +12,13 @@ interface MessageListProps {
     onDelete: (id: string) => void;
 }
 
-const getHttpStatusColor = (status: number) => {
-    if (status >= 200 && status < 300) return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-    if (status >= 400 && status < 500) return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
-    if (status >= 500) return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
-    return 'bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-200';
+const statusBadgeClass = (status?: number) => {
+    if (typeof status !== 'number') return 'bg-border-color/30 text-text-secondary';
+    if (status >= 200 && status < 300) return 'bg-accent-green/20 text-accent-green';
+    if (status >= 400 && status < 500) return 'bg-gold-dark/30 text-gold-light';
+    if (status >= 500) return 'bg-red-500/20 text-red-400';
+    return 'bg-border-color/30 text-text-secondary';
 };
-
 
 const MessageList: React.FC<MessageListProps> = ({ messages, onEdit, onDelete }) => {
     const [filterKey, setFilterKey] = useState('');
@@ -28,40 +27,31 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onEdit, onDelete })
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const { t } = useLocalization();
 
-
     const filteredMessages = useMemo(() => {
         return messages.filter(message => {
             const keyMatch = message.message_key.toLowerCase().includes(filterKey.toLowerCase());
-            
-            const httpStatusMatch = filterHttpStatus 
-                ? message.http_status?.toString().includes(filterHttpStatus)
-                : true;
-
+            const httpStatusMatch = filterHttpStatus ? message.http_status?.toString().includes(filterHttpStatus) : true;
             return keyMatch && httpStatusMatch;
         });
     }, [messages, filterKey, filterHttpStatus]);
-    
-    const totalPages = Math.ceil(filteredMessages.length / itemsPerPage);
+
+    const totalPages = Math.ceil(filteredMessages.length / itemsPerPage) || 1;
     const paginatedMessages = useMemo(() => {
         const startIndex = (currentPage - 1) * itemsPerPage;
         return filteredMessages.slice(startIndex, startIndex + itemsPerPage);
     }, [filteredMessages, currentPage, itemsPerPage]);
 
     const handleDelete = (id: string) => {
-        if (window.confirm(t('messageList.deleteConfirmation'))) {
-            onDelete(id);
-        }
+        if (window.confirm(t('messageList.deleteConfirmation'))) onDelete(id);
     };
-    
+
     const handlePageChange = (newPage: number) => {
-        if (newPage >= 1 && newPage <= totalPages) {
-            setCurrentPage(newPage);
-        }
+        if (newPage >= 1 && newPage <= totalPages) setCurrentPage(newPage);
     };
 
     const handleItemsPerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setItemsPerPage(Number(e.target.value));
-        setCurrentPage(1); // Reset to first page
+        setCurrentPage(1);
     };
 
     return (
@@ -72,21 +62,21 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onEdit, onDelete })
                     placeholder={t('messageList.filterKeyPlaceholder')}
                     value={filterKey}
                     onChange={(e) => { setFilterKey(e.target.value); setCurrentPage(1); }}
-                    className="flex-grow md:flex-grow-0 md:w-1/3 px-4 py-2 border border-slate-300 rounded-lg bg-white dark:bg-slate-800 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="flex-grow md:flex-grow-0 md:w-1/3 px-4 py-2 border border-border-color rounded-lg bg-primary-dark text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-purple"
                 />
                 <input
                     type="text"
                     placeholder={t('messageList.filterHttpStatusPlaceholder')}
                     value={filterHttpStatus}
                     onChange={(e) => { setFilterHttpStatus(e.target.value); setCurrentPage(1); }}
-                    className="px-4 py-2 border border-slate-300 rounded-lg bg-white dark:bg-slate-800 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="px-4 py-2 border border-border-color rounded-lg bg-primary-dark text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-purple"
                 />
             </div>
-            
-            <div className="bg-white dark:bg-slate-800 shadow-md rounded-xl overflow-hidden">
+
+            <div className="bg-primary-light border border-border-color shadow-lg rounded-xl overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left text-slate-500 dark:text-slate-400">
-                        <thead className="text-xs text-slate-700 uppercase bg-slate-100 dark:bg-slate-700 dark:text-slate-300">
+                    <table className="w-full text-sm text-left text-text-secondary">
+                        <thead className="text-xs uppercase bg-primary-dark text-text-secondary">
                             <tr>
                                 <th scope="col" className="px-6 py-3">{t('messageList.table.key')}</th>
                                 <th scope="col" className="px-6 py-3">{t('messageList.table.httpStatus')}</th>
@@ -98,41 +88,33 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onEdit, onDelete })
                         </thead>
                         <tbody>
                             {paginatedMessages.map((message) => (
-                                <tr key={message.id} className="bg-white dark:bg-slate-800 border-b dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600">
-                                    <td className="px-6 py-4 font-medium text-slate-900 dark:text-white whitespace-nowrap">{message.message_key}</td>
+                                <tr key={message.id} className="bg-primary-light border-b border-border-color/60 hover:bg-border-color/30 transition-colors">
+                                    <td className="px-6 py-4 font-mono text-text-primary">{message.message_key}</td>
                                     <td className="px-6 py-4">
-                                        {message.http_status ? (
-                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getHttpStatusColor(message.http_status)}`}>
-                                                {message.http_status}
-                                            </span>
-                                        ) : (
-                                            <span className="text-slate-400">-</span>
-                                        )}
+                                        <span className={`px-2 py-0.5 rounded-md text-xs font-bold ${statusBadgeClass(message.http_status ?? undefined)}`}>
+                                            {message.http_status ?? '-'}
+                                        </span>
                                     </td>
-                                    <td className="px-6 py-4">{message.version}</td>
+                                    <td className="px-6 py-4 text-text-primary">{message.version}</td>
                                     <td className="px-6 py-4">
-                                        <div className="flex flex-wrap gap-2">
-                                            {message.available_languages.map((lang) => {
-                                                const isActive = lang === message.selected_language;
-                                                return (
-                                                    <span
-                                                        key={`${message.id}-${lang}`}
-                                                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${isActive ? 'bg-primary-100 text-primary-700 border-primary-200 dark:bg-primary-900/40 dark:text-primary-200 dark:border-primary-700' : 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-700 dark:text-slate-200 dark:border-slate-600'}`}
-                                                    >
-                                                        {lang}
-                                                    </span>
-                                                );
-                                            })}
+                                        <div className="flex flex-wrap gap-1">
+                                            {(message.available_languages || []).map((lang) => (
+                                                <span key={lang} className="px-2 py-0.5 rounded-md text-xs bg-border-color/30 text-text-secondary font-mono">
+                                                    {lang}
+                                                </span>
+                                            ))}
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4">{t('messageList.table.updatedBy', { date: new Date(message.updated_at).toLocaleDateString(), user: message.updated_by })}</td>
+                                    <td className="px-6 py-4 text-text-secondary">
+                                        {t('messageList.table.updatedBy', { date: new Date(message.updated_at).toLocaleString(), user: message.updated_by })}
+                                    </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex justify-end space-x-3">
-                                            <button onClick={() => onEdit(message)} className="text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-200">
+                                            <button onClick={() => onEdit(message)} className="text-text-secondary hover:text-gold transition-colors">
                                                 <EditIcon className="w-5 h-5"/>
                                             </button>
-                                            <button onClick={() => handleDelete(message.id)} className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
-                                                <TrashIcon className="w-5 h-5"/>
+                                            <button onClick={() => handleDelete(message.id)} className="text-text-secondary hover:text-red-400 transition-colors">
+                                                <DeleteIcon className="w-5 h-5"/>
                                             </button>
                                         </div>
                                     </td>
@@ -140,23 +122,23 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onEdit, onDelete })
                             ))}
                         </tbody>
                     </table>
-                     {filteredMessages.length === 0 && (
-                        <div className="text-center py-10 text-slate-500 dark:text-slate-400">
+                    {filteredMessages.length === 0 && (
+                        <div className="text-center py-10 text-text-secondary">
                             {t('messageList.noMessagesFound')}
                         </div>
                     )}
                 </div>
-                 {totalPages > 0 && (
-                    <div className="flex flex-wrap items-center justify-between gap-4 p-4 border-t dark:border-slate-700">
+                {totalPages > 0 && (
+                    <div className="flex flex-wrap items-center justify-between gap-4 p-4 border-t border-border-color">
                         <div className="flex items-center gap-4">
-                            <span className="text-sm text-slate-700 dark:text-slate-200">
+                            <span className="text-sm text-text-primary">
                                 {t('pagination.pageInfo', { currentPage, totalPages })}
                             </span>
-                             <select
+                            <select
                                 id="items-per-page"
                                 value={itemsPerPage}
                                 onChange={handleItemsPerPageChange}
-                                className="px-2 py-1 text-sm border border-slate-300 rounded-md bg-white dark:bg-slate-800 dark:border-slate-600 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                                className="px-2 py-1 text-sm border border-border-color rounded-md bg-primary-dark text-text-primary focus:outline-none focus:ring-1 focus:ring-accent-purple"
                                 aria-label={t('pagination.itemsPerPageLabel')}
                             >
                                 {[10, 25, 50, 100].map(size => (
@@ -170,14 +152,14 @@ const MessageList: React.FC<MessageListProps> = ({ messages, onEdit, onDelete })
                             <button
                                 onClick={() => handlePageChange(currentPage - 1)}
                                 disabled={currentPage === 1}
-                                className="flex items-center justify-center p-2 text-sm font-medium text-white transition-colors rounded-lg bg-primary-600 hover:bg-primary-700 disabled:bg-slate-400 dark:disabled:bg-slate-600 disabled:cursor-not-allowed"
+                                className="flex items-center justify-center p-2 text-sm font-bold text-primary-dark transition-colors rounded-lg bg-gold hover:bg-gold-light disabled:bg-border-color disabled:text-text-secondary disabled:cursor-not-allowed"
                             >
                                 <ChevronLeftIcon className="w-4 h-4" />
                             </button>
                             <button
                                 onClick={() => handlePageChange(currentPage + 1)}
                                 disabled={currentPage === totalPages}
-                                className="flex items-center justify-center p-2 text-sm font-medium text-white transition-colors rounded-lg bg-primary-600 hover:bg-primary-700 disabled:bg-slate-400 dark:disabled:bg-slate-600 disabled:cursor-not-allowed"
+                                className="flex items-center justify-center p-2 text-sm font-bold text-primary-dark transition-colors rounded-lg bg-gold hover:bg-gold-light disabled:bg-border-color disabled:text-text-secondary disabled:cursor-not-allowed"
                             >
                                 <ChevronRightIcon className="w-4 h-4" />
                             </button>

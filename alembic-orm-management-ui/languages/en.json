@@ -1,0 +1,64 @@
+{
+  "sidebar": {
+    "migrations": "Migrations",
+    "models": "Models",
+    "version": "Version"
+  },
+  "header": {
+    "project": "Project:",
+    "switchProject": "Switch Project",
+    "exitProject": "Exit Project"
+  },
+  "projectSelection": {
+    "welcome": "Welcome to Alembic",
+    "selectOrCreate": "Select a project to start or add a new one.",
+    "select": "Select",
+    "addNew": "Add New Project",
+    "noneFound": "No projects found.",
+    "addFirst": "Add your First Project"
+  },
+  "connectionModal": {
+    "editTitle": "Edit Project",
+    "addTitle": "Add New Project",
+    "editSubtitle": "Update the details of your project.",
+    "addSubtitle": "Enter your project information to connect.",
+    "projectName": "Project Name",
+    "projectNamePlaceholder": "e.g., My E-commerce Project",
+    "dbUrl": "Database URL",
+    "migrationsPath": "Migrations Directory",
+    "modelsPath": "Models Directory",
+    "saveChanges": "Save Changes",
+    "addAndConnect": "Add and Connect",
+    "saving": "Saving..."
+  },
+  "migrationManager": {
+    "title": "Migration History",
+    "subtitle": "Manage and visualize your database version history.",
+    "empty": "Empty",
+    "autogenerate": "Autogenerate",
+    "upgradeHead": "Upgrade to Head",
+    "save": "Save",
+    "cancel": "Cancel",
+    "downgrade": "Downgrade",
+    "upgrade": "Upgrade"
+  },
+  "modelViewer": {
+    "title": "Model Viewer",
+    "subtitle": "Select an SQLAlchemy model to see its details and relationships.",
+    "noneFound": "No Models Found",
+    "noneFoundSubtitle": "Could not find or parse SQLAlchemy models in the specified path.",
+    "checkPath": "Please check the path in the settings."
+  },
+  "modelDetail": {
+    "back": "Back",
+    "model": "Model:",
+    "fields": "Fields",
+    "relations": "Relationships",
+    "belongsTo": "belongs to",
+    "hasMany": "has many",
+    "noRelations": "No relationships found for this model."
+  },
+  "app": {
+    "deleteConfirmation": "Are you sure you want to delete this project?"
+  }
+}

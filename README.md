@@ -10,12 +10,19 @@ into a full stack application.
 
 ## Frontend setup
 
+The frontend has been refactored to use the Alembic ORM Management UI as its base, and now includes the Business Messages feature integrated as a dedicated view.
+
 **Prerequisites:** Node.js
 
 1. Change into the frontend workspace: `cd frontend`
 2. Install dependencies: `npm install`
-3. Set the `AI_API_KEY` in `frontend/.env.local` to the API key for your preferred provider
+3. (Optional) Set `VITE_API_BASE_URL` in `frontend/.env.local` if your API isn’t on `http://localhost:8000`
 4. Run the app locally: `npm run dev`
+
+Key changes:
+- Alembic views (Migrations, Models, Model Detail) are available in the sidebar.
+- A new `Messages` view is available in the sidebar and connects to the backend endpoints at `/messages`.
+- i18n lives under `frontend/languages` and supports `pt`, `en`, and `es` (fallback to `en`).
 
 ## Backend setup (FastAPI + PostgreSQL)
 

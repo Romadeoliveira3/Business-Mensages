@@ -1,0 +1,164 @@
+{
+  "sidebar": {
+    "migrations": "Migrations",
+    "models": "Modelos",
+    "version": "Versão",
+    "messages": "Mensagens"
+  },
+  "header": {
+    "project": "Projeto:",
+    "switchProject": "Alternar Projeto",
+    "exitProject": "Sair do Projeto"
+  },
+  "projectSelection": {
+    "welcome": "Bem-vindo ao Alembic",
+    "selectOrCreate": "Selecione um projeto para começar ou adicione um novo.",
+    "select": "Selecionar",
+    "addNew": "Adicionar Novo Projeto",
+    "noneFound": "Nenhum projeto encontrado.",
+    "addFirst": "Adicionar seu Primeiro Projeto"
+  },
+  "connectionModal": {
+    "editTitle": "Editar Projeto",
+    "addTitle": "Adicionar Novo Projeto",
+    "editSubtitle": "Atualize os detalhes do seu projeto.",
+    "addSubtitle": "Insira as informações do seu projeto para conectar.",
+    "projectName": "Nome do Projeto",
+    "projectNamePlaceholder": "ex: Meu Projeto de E-commerce",
+    "dbUrl": "URL do Banco de Dados",
+    "migrationsPath": "Diretório das Migrations",
+    "modelsPath": "Diretório de Models",
+    "saveChanges": "Salvar Alterações",
+    "addAndConnect": "Adicionar e Conectar",
+    "saving": "Salvando..."
+  },
+  "migrationManager": {
+    "title": "Histórico de Migrations",
+    "subtitle": "Gerencie e visualize o histórico de versões do seu banco de dados.",
+    "empty": "Vazio",
+    "autogenerate": "Autogenerate",
+    "upgradeHead": "Atualizar Head",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "downgrade": "Downgrade",
+    "upgrade": "Upgrade"
+  },
+  "modelViewer": {
+    "title": "Visualizador de Modelos",
+    "subtitle": "Selecione um modelo SQLAlchemy para ver seus detalhes e relações.",
+    "noneFound": "Nenhum Modelo Encontrado",
+    "noneFoundSubtitle": "Não foi possível encontrar ou interpretar modelos SQLAlchemy no caminho especificado.",
+    "checkPath": "Verifique o caminho nas configurações."
+  },
+  "modelDetail": {
+    "back": "Voltar",
+    "model": "Modelo:",
+    "fields": "Campos",
+    "relations": "Relações",
+    "belongsTo": "pertence a",
+    "hasMany": "tem muitos",
+    "noRelations": "Nenhuma relação encontrada para este modelo."
+  },
+  "app": {
+    "deleteConfirmation": "Tem certeza que deseja excluir este projeto?"
+  },
+  "common": {
+    "cancel": "Cancelar",
+    "saveChanges": "Salvar Alterações",
+    "createMessage": "Criar Mensagem",
+    "close": "Fechar"
+  },
+  "status": {
+    "loading": "Carregando mensagens..."
+  },
+  "alerts": {
+    "loadError": "Não foi possível carregar as mensagens. Tente novamente.",
+    "saveError": "Não foi possível salvar as alterações. Tente novamente.",
+    "deleteError": "Não foi possível remover a mensagem. Tente novamente."
+  },
+  "messageList": {
+    "title": "Mensagens",
+    "newMessageButton": "Nova Mensagem",
+    "filterKeyPlaceholder": "Filtrar por chave da mensagem...",
+    "filterHttpStatusPlaceholder": "Filtrar por status HTTP...",
+    "deleteConfirmation": "Você tem certeza que deseja deletar esta mensagem e seu histórico?",
+    "noMessagesFound": "Nenhuma mensagem encontrada.",
+    "table": {
+      "key": "Chave da Mensagem",
+      "httpStatus": "Status HTTP",
+      "version": "Versão",
+      "languages": "Idiomas",
+      "lastUpdated": "Última Atualização",
+      "actions": "Ações",
+      "updatedBy": "{date} por {user}"
+    }
+  },
+  "pagination": {
+    "pageInfo": "Página {currentPage} de {totalPages}",
+    "itemsPerPage": "{count} por página",
+    "itemsPerPageLabel": "Itens por página"
+  },
+  "editor": {
+    "title": {
+      "create": "Criar Nova Mensagem",
+      "edit": "Editar Mensagem: {key}"
+    },
+    "versionHistoryButton": "Histórico de Versões",
+    "translations": {
+      "languageLabel": "Idioma",
+      "languageNameLabel": "Nome do idioma (opcional)",
+      "languageNamePlaceholder": "ex: English, Português (Brasil)",
+      "addLanguage": "Adicionar idioma",
+      "addLanguagePrompt": "Informe um código de idioma (por exemplo en ou pt-BR)",
+      "removeLanguage": "Remover idioma",
+      "removeLanguageDisabled": "Pelo menos um idioma deve permanecer."
+    },
+    "fields": {
+      "key": {
+        "label": "Chave da Mensagem",
+        "tooltipText": "Um identificador único para a mensagem, usando notação de ponto para agrupamento.",
+        "tooltipExample": "ex: usuario.login.sucesso, api.pagamento.erro"
+      },
+      "title": {
+        "label": "Título",
+        "tooltipText": "Um título curto e descritivo para a mensagem, frequentemente usado em alertas ou notificações de UI.",
+        "tooltipExample": "ex: Login com Sucesso, Falha no Pagamento"
+      },
+      "body": {
+        "label": "Corpo (pode ser texto ou JSON)",
+        "tooltipText": "O conteúdo principal. Use placeholders como {variavel} para texto dinâmico ou forneça um objeto JSON válido para respostas de API.",
+        "tooltipExample": "{\n  \"erro\": \"Não encontrado\",\n  \"caminho\": \"{caminho}\"\n}"
+      },
+      "variables": {
+        "label": "Variáveis (separadas por vírgula)",
+        "tooltipText": "Uma lista de nomes de placeholders usados no corpo, separados por vírgulas. Eles serão substituídos por dados dinâmicos.",
+        "tooltipExample": "ex: nomeUsuario, idPedido"
+      },
+      "httpStatus": {
+        "label": "Status HTTP (opcional)",
+        "tooltipText": "Para mensagens de resposta de API, especifique o código de status HTTP correspondente.",
+        "tooltipExample": "ex: 200, 404, 500"
+      }
+    },
+    "warning": {
+      "title": "Aviso",
+      "undeclaredVariables": "Os seguintes placeholders são usados no corpo mas não foram declarados:"
+    },
+    "preview": {
+      "live": "Pré-visualização ao Vivo",
+      "formatted": "Pré-visualização Formatada",
+      "sampleVariables": "Variáveis de Exemplo",
+      "sampleInputPlaceholder": "Exemplo para {variable}",
+      "noVariables": "Nenhuma variável declarada.",
+      "interpolatedMessage": "Mensagem Interpolada"
+    }
+  },
+  "history": {
+    "title": "Histórico de Versões para",
+    "version": "Versão {version}",
+    "latest": "Mais Recente",
+    "updatedBy": "{date} por {user}",
+    "defaultCreate": "Criação inicial.",
+    "defaultUpdate": "Conteúdo e propriedades da mensagem atualizados."
+  }
+}

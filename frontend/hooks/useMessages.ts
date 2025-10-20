@@ -24,12 +24,6 @@ export const useMessages = (language?: string) => {
   const [error, setError] = useState<MessageErrorType | null>(null);
 
   const fetchMessages = useCallback(async () => {
-    // Verifica se o usuário está autenticado antes de buscar mensagens
-    const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
-    if (!isAuthenticated) {
-      setState(initialState);
-      return;
-    }
 
     setLoading(true);
     setError(null);
@@ -63,11 +57,7 @@ export const useMessages = (language?: string) => {
   }, [language]);
 
   useEffect(() => {
-    // Verifica se o usuário está autenticado antes de buscar mensagens
-    const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
-    if (isAuthenticated) {
-      void fetchMessages();
-    }
+    void fetchMessages();
   }, [fetchMessages]);
 
   const createMessage = useCallback(

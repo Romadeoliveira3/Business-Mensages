@@ -8,7 +8,7 @@ import {
 import MessageHistoryModal from "./MessageHistoryModal";
 import { HistoryIcon } from "./icons/HistoryIcon";
 import Tooltip from "./Tooltip";
-import { useLocalization } from "../contexts/LocalizationContext";
+import { useLocalization } from "../context/LocalizationContext";
 
 interface MessageEditorProps {
   message: BusinessMessage | null;
@@ -21,7 +21,7 @@ const HighlightedBody: React.FC<{ body: string }> = ({ body }) => {
   try {
     const jsonObj = JSON.parse(body);
     return (
-      <pre className="text-sm bg-slate-50 dark:bg-slate-900 p-2 rounded overflow-x-auto">
+      <pre className="text-sm bg-primary-dark p-2 rounded overflow-x-auto text-text-primary">
         <code>{JSON.stringify(jsonObj, null, 2)}</code>
       </pre>
     );
@@ -33,7 +33,7 @@ const HighlightedBody: React.FC<{ body: string }> = ({ body }) => {
           /\{[a-zA-Z0-9_]+\}/.test(part) ? (
             <span
               key={i}
-              className="bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-200 font-mono rounded px-1"
+              className="bg-gold/20 text-gold font-mono rounded px-1"
             >
               {part}
             </span>
@@ -260,15 +260,15 @@ const MessageEditor: React.FC<MessageEditorProps> = ({
 
 
   return (
-    <div className="bg-white dark:bg-slate-800 p-8 rounded-xl shadow-lg relative">
-      <div className="flex justify-between items-center mb-6 pb-4 border-b dark:border-slate-700">
-        <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
+    <div className="bg-primary-light border border-border-color p-8 rounded-xl shadow-lg relative text-text-primary">
+      <div className="flex justify-between items-center mb-6 pb-4 border-b border-border-color">
+        <h1 className="text-3xl font-bold text-text-primary">
           {editorTitle}
         </h1>
         {message && (
           <button
             onClick={() => setIsHistoryVisible(true)}
-            className="flex items-center gap-2 text-sm text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-200 font-semibold"
+            className="flex items-center gap-2 text-sm text-text-secondary hover:text-gold font-semibold"
           >
             <HistoryIcon className="w-5 h-5" /> {t("editor.versionHistoryButton")}
           </button>
@@ -282,7 +282,7 @@ const MessageEditor: React.FC<MessageEditorProps> = ({
         <div className="space-y-4">
           <div>
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              <label className="text-sm font-medium text-text-secondary">
                 {t("editor.fields.key.label")}
               </label>
               <Tooltip
@@ -296,19 +296,19 @@ const MessageEditor: React.FC<MessageEditorProps> = ({
               value={metadata.message_key}
               onChange={handleMetadataChange}
               required
-              className="mt-1 block w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+              className="mt-1 block w-full px-3 py-2 bg-primary-dark border border-border-color rounded-md shadow-sm focus:outline-none focus:ring-accent-purple focus:border-accent-purple text-text-primary"
             />
           </div>
 
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              <label className="text-sm font-medium text-text-secondary">
                 {t("editor.translations.languageLabel")}
               </label>
               <select
                 value={selectedLanguage}
                 onChange={(event) => handleSelectLanguage(event.target.value)}
-                className="mt-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                className="mt-1 px-3 py-2 bg-primary-dark border border-border-color rounded-md shadow-sm focus:outline-none focus:ring-accent-purple focus:border-accent-purple text-text-primary"
               >
                 {availableLanguages.map((lang) => (
                   <option key={lang} value={lang}>
@@ -316,14 +316,14 @@ const MessageEditor: React.FC<MessageEditorProps> = ({
                   </option>
                 ))}
               </select>
-            </div>
+          </div>
           </div>
 
           {/* Language name field removed: only codes are supported */}
 
           <div>
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              <label className="text-sm font-medium text-text-secondary">
                 {t("editor.fields.title.label")}
               </label>
               <Tooltip
@@ -339,13 +339,13 @@ const MessageEditor: React.FC<MessageEditorProps> = ({
                 handleTranslationFieldChange("title", event.target.value)
               }
               required
-              className="mt-1 block w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+              className="mt-1 block w-full px-3 py-2 bg-primary-dark border border-border-color rounded-md shadow-sm focus:outline-none focus:ring-accent-purple focus:border-accent-purple text-text-primary"
             />
           </div>
 
           <div>
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              <label className="text-sm font-medium text-text-secondary">
                 {t("editor.fields.body.label")}
               </label>
               <Tooltip
@@ -361,10 +361,10 @@ const MessageEditor: React.FC<MessageEditorProps> = ({
               }
               rows={8}
               required
-              className="mt-1 block w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 font-mono"
+              className="mt-1 block w-full px-3 py-2 bg-primary-dark border border-border-color rounded-md shadow-sm focus:outline-none focus:ring-accent-purple focus:border-accent-purple font-mono text-text-primary"
             ></textarea>
-            <div className="mt-2 p-2 bg-slate-50 dark:bg-slate-700 rounded-md">
-              <p className="text-xs text-slate-600 dark:text-slate-300 mb-1">
+            <div className="mt-2 p-2 bg-primary-dark rounded-md">
+              <p className="text-xs text-text-secondary mb-1">
                 {t("editor.preview.formatted")}:
               </p>
               <HighlightedBody body={currentTranslation.body} />
@@ -373,7 +373,7 @@ const MessageEditor: React.FC<MessageEditorProps> = ({
 
           <div>
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              <label className="text-sm font-medium text-text-secondary">
                 {t("editor.fields.variables.label")}
               </label>
               <Tooltip
@@ -387,12 +387,12 @@ const MessageEditor: React.FC<MessageEditorProps> = ({
               value={variablesInput}
               onChange={handleVariablesChange}
               placeholder="variavel1,variavel2,variavel3"
-              className="mt-1 block w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 font-mono"
+              className="mt-1 block w-full px-3 py-2 bg-primary-dark border border-border-color rounded-md shadow-sm focus:outline-none focus:ring-accent-purple focus:border-accent-purple font-mono text-text-primary"
             />
           </div>
 
           {undeclaredVariables.length > 0 && (
-            <div className="p-3 bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200 border-l-4 border-yellow-500 dark:border-yellow-400 rounded-r-md text-sm">
+            <div className="p-3 bg-gold-dark/30 text-gold-light border-l-4 border-gold rounded-r-md text-sm">
               <strong>{t("editor.warning.title")}:</strong> {" "}
               {t("editor.warning.undeclaredVariables")} {" "}
               {undeclaredVariables.join(", ")}
@@ -401,7 +401,7 @@ const MessageEditor: React.FC<MessageEditorProps> = ({
 
           <div>
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              <label className="text-sm font-medium text-text-secondary">
                 {t("editor.fields.httpStatus.label")}
               </label>
               <Tooltip
@@ -414,24 +414,24 @@ const MessageEditor: React.FC<MessageEditorProps> = ({
               name="http_status"
               value={metadata.http_status ?? ""}
               onChange={handleMetadataChange}
-              className="mt-1 block w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+              className="mt-1 block w-full px-3 py-2 bg-primary-dark border border-border-color rounded-md shadow-sm focus:outline-none focus:ring-accent-purple focus:border-accent-purple text-text-primary"
             />
           </div>
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200">
+          <h3 className="text-lg font-semibold text-text-primary">
             {t("editor.preview.live")}
           </h3>
-          <div className="bg-slate-100 dark:bg-slate-700 p-6 rounded-lg space-y-4">
+          <div className="bg-primary-dark p-6 rounded-lg space-y-4">
             <div className="space-y-2">
-              <h4 className="font-semibold text-slate-800 dark:text-slate-100">
+              <h4 className="font-semibold text-text-primary">
                 {t("editor.preview.sampleVariables")}
               </h4>
               {metadata.variables.length > 0 ? (
                 metadata.variables.map((v) => (
                   <div key={v} className="flex items-center gap-2">
-                    <label className="w-1/3 text-sm font-mono text-slate-600 dark:text-slate-300">{`{${v}}`}</label>
+                    <label className="w-1/3 text-sm font-mono text-text-secondary">{`{${v}}`}</label>
                     <input
                       type="text"
                       placeholder={t("editor.preview.sampleInputPlaceholder", {
@@ -441,25 +441,25 @@ const MessageEditor: React.FC<MessageEditorProps> = ({
                       onChange={(e) =>
                         handleSampleValueChange(v, e.target.value)
                       }
-                      className="w-2/3 px-2 py-1 text-sm bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-1 focus:ring-primary-500"
+                      className="w-2/3 px-2 py-1 text-sm bg-primary-dark border border-border-color rounded-md focus:outline-none focus:ring-1 focus:ring-accent-purple text-text-primary"
                     />
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-slate-500 dark:text-slate-400">
+                <p className="text-sm text-text-secondary">
                   {t("editor.preview.noVariables")}
                 </p>
               )}
             </div>
-            <div className="border-t border-slate-300 dark:border-slate-600 pt-4">
-              <h4 className="font-semibold text-slate-800 dark:text-slate-100">
+            <div className="border-t border-border-color pt-4">
+              <h4 className="font-semibold text-text-primary">
                 {t("editor.preview.interpolatedMessage")}
               </h4>
-              <div className="mt-2 p-4 bg-white dark:bg-slate-800 rounded-md shadow-inner">
-                <p className="font-bold text-lg text-slate-900 dark:text-slate-50">
+              <div className="mt-2 p-4 bg-primary-light border border-border-color rounded-md shadow-inner">
+                <p className="font-bold text-lg text-text-primary">
                   {currentTranslation.title}
                 </p>
-                <div className="mt-1 text-slate-700 dark:text-slate-300">
+                <div className="mt-1 text-text-secondary">
                   <HighlightedBody body={interpolatedPreview} />
                 </div>
               </div>
@@ -471,13 +471,13 @@ const MessageEditor: React.FC<MessageEditorProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="py-2 px-4 border border-slate-300 dark:border-slate-600 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+            className="py-2 px-4 border border-border-color rounded-lg text-sm font-semibold text-text-primary hover:bg-border-color transition-colors"
           >
             {t("common.cancel")}
           </button>
           <button
             type="submit"
-            className="py-2 px-4 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors"
+            className="py-2 px-4 bg-gold text-primary-dark font-bold rounded-lg hover:bg-gold-light transition-colors"
           >
             {message ? t("common.saveChanges") : t("common.createMessage")}
           </button>

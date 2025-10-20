@@ -1,0 +1,65 @@
+{
+  "sidebar": {
+    "migrations": "Migraciones",
+    "models": "Modelos",
+    "version": "Versión",
+    "messages": "Mensajes"
+  },
+  "header": {
+    "project": "Proyecto:",
+    "switchProject": "Cambiar Proyecto",
+    "exitProject": "Salir del Proyecto"
+  },
+  "projectSelection": {
+    "welcome": "Bienvenido a Alembic",
+    "selectOrCreate": "Seleccione un proyecto para comenzar o agregue uno nuevo.",
+    "select": "Seleccionar",
+    "addNew": "Agregar Nuevo Proyecto",
+    "noneFound": "No se encontraron proyectos.",
+    "addFirst": "Agrega tu Primer Proyecto"
+  },
+  "connectionModal": {
+    "editTitle": "Editar Proyecto",
+    "addTitle": "Agregar Nuevo Proyecto",
+    "editSubtitle": "Actualice los detalles de su proyecto.",
+    "addSubtitle": "Ingrese la información de su proyecto para conectar.",
+    "projectName": "Nombre del Proyecto",
+    "projectNamePlaceholder": "p. ej., Mi Proyecto de E-commerce",
+    "dbUrl": "URL de Base de Datos",
+    "migrationsPath": "Directorio de Migraciones",
+    "modelsPath": "Directorio de Modelos",
+    "saveChanges": "Guardar Cambios",
+    "addAndConnect": "Agregar y Conectar",
+    "saving": "Guardando..."
+  },
+  "migrationManager": {
+    "title": "Historial de Migraciones",
+    "subtitle": "Administre y visualice el historial de versiones de su base de datos.",
+    "empty": "Vacío",
+    "autogenerate": "Autogenerar",
+    "upgradeHead": "Actualizar a Head",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "downgrade": "Downgrade",
+    "upgrade": "Upgrade"
+  },
+  "modelViewer": {
+    "title": "Visor de Modelos",
+    "subtitle": "Seleccione un modelo de SQLAlchemy para ver sus detalles y relaciones.",
+    "noneFound": "No se encontraron Modelos",
+    "noneFoundSubtitle": "No se pudieron encontrar o interpretar modelos de SQLAlchemy en la ruta especificada.",
+    "checkPath": "Verifique la ruta en la configuración."
+  },
+  "modelDetail": {
+    "back": "Volver",
+    "model": "Modelo:",
+    "fields": "Campos",
+    "relations": "Relaciones",
+    "belongsTo": "pertenece a",
+    "hasMany": "tiene muchos",
+    "noRelations": "No se encontraron relaciones para este modelo."
+  },
+  "app": {
+    "deleteConfirmation": "¿Está seguro de que desea eliminar este proyecto?"
+  }
+}
