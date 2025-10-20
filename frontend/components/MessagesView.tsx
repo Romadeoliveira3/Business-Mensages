@@ -8,7 +8,11 @@ import type { BusinessMessage, MessageInput } from '../types';
 
 const MessagesView: React.FC = () => {
   const { t, locale } = useLocalization();
-  const apiLanguage = useMemo(() => (locale === 'pt' ? 'pt-BR' : 'en'), [locale]);
+  const apiLanguage = useMemo(() => {
+    if (locale === 'pt') return 'pt-BR';
+    if (locale === 'es') return 'es';
+    return 'en';
+  }, [locale]);
 
   const {
     messages,

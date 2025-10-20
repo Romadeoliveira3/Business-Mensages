@@ -40,8 +40,8 @@
     "upgradeHead": "Actualizar a Head",
     "save": "Guardar",
     "cancel": "Cancelar",
-    "downgrade": "Downgrade",
-    "upgrade": "Upgrade"
+    "downgrade": "Revertir",
+    "upgrade": "Actualizar"
   },
   "modelViewer": {
     "title": "Visor de Modelos",
@@ -61,5 +61,104 @@
   },
   "app": {
     "deleteConfirmation": "¿Está seguro de que desea eliminar este proyecto?"
+  },
+  "common": {
+    "cancel": "Cancelar",
+    "saveChanges": "Guardar cambios",
+    "createMessage": "Crear mensaje",
+    "close": "Cerrar"
+  },
+  "status": {
+    "loading": "Cargando mensajes..."
+  },
+  "alerts": {
+    "loadError": "No pudimos cargar los mensajes. Inténtelo de nuevo.",
+    "saveError": "No pudimos guardar los cambios. Inténtelo de nuevo.",
+    "deleteError": "No pudimos eliminar el mensaje. Inténtelo de nuevo."
+  },
+  "messageList": {
+    "title": "Mensajes",
+    "newMessageButton": "Nuevo mensaje",
+    "filterKeyPlaceholder": "Filtrar por clave de mensaje...",
+    "filterHttpStatusPlaceholder": "Filtrar por estado HTTP...",
+    "deleteConfirmation": "¿Está seguro de que desea eliminar este mensaje y su historial?",
+    "noMessagesFound": "No se encontraron mensajes.",
+    "table": {
+      "key": "Clave de Mensaje",
+      "httpStatus": "Estado HTTP",
+      "version": "Versión",
+      "languages": "Idiomas",
+      "lastUpdated": "Última actualización",
+      "actions": "Acciones",
+      "updatedBy": "{date} por {user}"
+    }
+  },
+  "pagination": {
+    "pageInfo": "Página {currentPage} de {totalPages}",
+    "itemsPerPage": "{count} por página",
+    "itemsPerPageLabel": "Elementos por página"
+  },
+  "editor": {
+    "title": {
+      "create": "Crear Nuevo Mensaje",
+      "edit": "Editar Mensaje: {key}"
+    },
+    "versionHistoryButton": "Historial de versiones",
+    "translations": {
+      "languageLabel": "Idioma",
+      "languageNameLabel": "Nombre del idioma (opcional)",
+      "languageNamePlaceholder": "p. ej., English, Español (España)",
+      "addLanguage": "Agregar idioma",
+      "addLanguagePrompt": "Introduzca un código de idioma (por ejemplo, en o es-ES)",
+      "removeLanguage": "Eliminar idioma",
+      "removeLanguageDisabled": "Debe permanecer al menos un idioma."
+    },
+    "fields": {
+      "key": {
+        "label": "Clave de Mensaje",
+        "tooltipText": "Un identificador único para el mensaje, usando notación de puntos para agrupar.",
+        "tooltipExample": "p. ej., usuario.login.exito, api.pago.error"
+      },
+      "title": {
+        "label": "Título",
+        "tooltipText": "Un título corto y descriptivo para el mensaje, a menudo utilizado en alertas o notificaciones de la UI.",
+        "tooltipExample": "p. ej., Inicio de sesión exitoso, Pago fallido"
+      },
+      "body": {
+        "label": "Cuerpo (puede ser texto o JSON)",
+        "tooltipText": "El contenido principal. Use marcadores como {variable} para texto dinámico o proporcione un objeto JSON válido para respuestas de API.",
+        "tooltipExample": "{\n  \"error\": \"No encontrado\",\n  \"ruta\": \"{path}\"\n}"
+      },
+      "variables": {
+        "label": "Variables (separadas por comas)",
+        "tooltipText": "Una lista de nombres de marcadores usados en el cuerpo, separados por comas. Serán reemplazados con datos dinámicos.",
+        "tooltipExample": "p. ej., usuario, idPedido"
+      },
+      "httpStatus": {
+        "label": "Estado HTTP (opcional)",
+        "tooltipText": "Para mensajes de respuesta de API, especifique el código de estado HTTP correspondiente.",
+        "tooltipExample": "p. ej., 200, 404, 500"
+      }
+    },
+    "warning": {
+      "title": "Advertencia",
+      "undeclaredVariables": "Los siguientes marcadores se usan en el cuerpo pero no han sido declarados:"
+    },
+    "preview": {
+      "live": "Vista previa en vivo",
+      "formatted": "Vista previa formateada",
+      "sampleVariables": "Variables de ejemplo",
+      "sampleInputPlaceholder": "Ejemplo para {variable}",
+      "noVariables": "No hay variables declaradas.",
+      "interpolatedMessage": "Mensaje interpolado"
+    }
+  },
+  "history": {
+    "title": "Historial de versiones para",
+    "version": "Versión {version}",
+    "latest": "Más reciente",
+    "updatedBy": "{date} por {user}",
+    "defaultCreate": "Creación inicial.",
+    "defaultUpdate": "Contenido y propiedades del mensaje actualizados."
   }
 }

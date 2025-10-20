@@ -5,7 +5,7 @@ type Locale = 'pt' | 'en' | 'es';
 interface LocalizationContextType {
   locale: Locale;
   setLocale: (locale: Locale) => void;
-  t: (key: string) => string;
+  t: (key: string, vars?: Record<string, string | number>) => string;
 }
 
 const LocalizationContext = createContext<LocalizationContextType | undefined>(undefined);
@@ -53,7 +53,7 @@ export const LocalizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   };
 
-  const t = useCallback((key: string): string => {
+  const t = useCallback((key: string, vars?: Record<string, string | number>): string => {
     if (!areTranslationsLoaded) return key;
     const keys = key.split('.');
     const resolve = (obj: any) => keys.reduce((acc, k) => acc?.[k], obj);
@@ -66,7 +66,17 @@ export const LocalizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       translation = fallbackTranslations ? resolve(fallbackTranslations) : undefined;
     }
 
-    return translation || key;
+    if (typeof translation !== 'string') {
+      return translation || key;
+    }
+
+    if (!vars) return translation;
+
+    // Simple interpolation: replace {var} with provided values
+    return translation.replace(/\{(\w+)\}/g, (_, name) => {
+      const value = vars[name as keyof typeof vars];
+      return value !== undefined && value !== null ? String(value) : `{${name}}`;
+    });
   }, [locale, areTranslationsLoaded]);
   
   return (
@@ -83,4 +93,3 @@ export const useLocalization = (): LocalizationContextType => {
   }
   return context;
 };
-
